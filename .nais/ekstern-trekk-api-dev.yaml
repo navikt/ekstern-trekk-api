@@ -1,0 +1,67 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: "ekstern-trekk-api"
+  namespace: "team-emottak"
+  labels:
+    "team": "team-emottak"
+spec:
+  maskinporten:
+    enabled: true
+    scopes:
+      exposes:
+        # nav:utbetaling/trekkopplysning/innmelding
+        - enabled: true
+          product: "utbetaling"
+          separator: "/"
+          name: "trekkopplysning/innmelding"
+          consumers:
+            - orgno: "123456789"
+  webproxy: true
+  image: {{image}}
+  liveness:
+    path: "/internal/health/liveness"
+    port: 8080
+    initialDelay: 30
+    timeout: 10
+    failureThreshold: 10
+  readiness:
+    path: "/internal/health/readiness"
+    port: 8080
+    initialDelay: 30
+    timeout: 10
+    failureThreshold: 10
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+      destinations:
+        - id: "grafana-lgtm"
+        - id: "elastic-apm"
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  replicas:
+    min: 1
+    max: 1
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+  ingresses:
+    - "https://ekstern-trekk-api.ekstern.dev.nav.no"
+    - "https://ekstern-trekk-api.intern.dev.nav.no"
+  vault:
+    enabled: true
+  kafka:
+    pool: nav-dev
+  env:
+    - name: EMOTTAK_LOGGING_LEVEL
+      value: DEBUG
