@@ -50,11 +50,7 @@ fun Route.innmeldingRoutes(
         val orgnr = orgNrFromTokenValidationContext()
         if (orgnr == null) {
             log.error("Tjeneste kalt uten auth med orgnr")
-            call.respondText(
-                "Autorisasjonsfeil",
-                contentType = ContentType.Text.Plain,
-                status = HttpStatusCode.Unauthorized
-            )
+            call.respondText("Autorisasjonsfeil", contentType = ContentType.Text.Plain, status = HttpStatusCode.Unauthorized)
             return@put
         }
 

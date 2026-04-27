@@ -14,8 +14,11 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import no.nav.emottak.utils.coroutines.coroutineScope
 import no.nav.trekkapi.configuration.config
-import no.nav.trekkapi.innmelding.TrekkInnmeldingRepository
 import no.nav.trekkapi.innmelding.TrekkInnmeldingService
+import no.nav.trekkapi.persistence.Database
+import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
+import no.nav.trekkapi.persistence.messageStatusDbConfig
+import no.nav.trekkapi.persistence.messageStatusMigrationConfig
 import no.nav.trekkapi.plugin.configureAuthentication
 import no.nav.trekkapi.plugin.configureContentNegotiation
 import no.nav.trekkapi.plugin.configureMetrics
@@ -39,11 +42,10 @@ suspend fun ResourceScope.runServer() {
     val config = config()
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-    // todo kanskje lokal DB, eller eventManager client (både for å lagre og lese)
-//    val database = Database(eventDbConfig.value)
-//    database.migrate(eventMigrationConfig.value)
+    val database = Database(messageStatusDbConfig.value)
+    database.migrate(messageStatusMigrationConfig.value)
 
-    val trekkInnmeldingRepository = TrekkInnmeldingRepository()
+    val trekkInnmeldingRepository = TrekkInnmeldingRepository(database)
 
     val trekkInnmeldingService = TrekkInnmeldingService(trekkInnmeldingRepository)
 

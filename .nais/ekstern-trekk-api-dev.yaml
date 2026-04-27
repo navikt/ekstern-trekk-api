@@ -62,6 +62,16 @@ spec:
     enabled: true
   kafka:
     pool: nav-dev
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_18
+        name: ekstern-trekk-api-db
+        databases:
+          - name: ekstern-trekk-api-db
+            envVarPrefix: POSTGRES
+        diskAutoresize: false
+        diskType: SSD
+        tier: db-f1-micro
   env:
     - name: EMOTTAK_LOGGING_LEVEL
       value: DEBUG

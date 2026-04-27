@@ -1,47 +1,38 @@
 package no.nav.trekkapi.innmelding
 
 import kotlinx.serialization.Serializable
-import java.time.LocalDateTime
-
-// status kan være: "Akseptert", "Avvist", "Under behandling"
-enum class TrekkStatus {
-    UnderBehandling, Akseptert, Avvist
-}
-const val TREKK_STATUS_UNDERBEHANDLING = "Under behandling"
-const val TREKK_STATUS_AKSEPTERT = "Akseptert"
-const val TREKK_STATUS_AVVIST = "Avvist"
+import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
+import no.nav.trekkapi.persistence.table.MessageStatusEnum
+import java.time.Instant
+import kotlin.uuid.Uuid
 
 @Serializable
 data class InnrapporteringStatus(val status: String, val description: String? = null)
 
-fun underBehandling(innsendt: LocalDateTime) = InnrapporteringStatus(
-    TREKK_STATUS_UNDERBEHANDLING,
+fun underBehandling(innsendt: Instant) = InnrapporteringStatus(
+    MessageStatusEnum.BEING_PROCESSED.description,
     "Sendt inn $innsendt"
 )
-fun akseptert(kvitteringMottatt: LocalDateTime) = InnrapporteringStatus(
-    TREKK_STATUS_AKSEPTERT,
+fun akseptert(kvitteringMottatt: Instant) = InnrapporteringStatus(
+    MessageStatusEnum.ACCEPTED.description,
     "Kvittering mottatt $kvitteringMottatt"
 )
 fun avvist(beskrivelse: String) = InnrapporteringStatus(
-    TREKK_STATUS_AVVIST,
+    MessageStatusEnum.REJECTED.description,
     beskrivelse
 )
 
 class TrekkInnmeldingService(val innrapporteringRepository: TrekkInnmeldingRepository, val trekkInnmeldingModel: TrekkInnmeldingModel = TrekkInnmeldingModel()) {
-    fun alreadyRegistered(orgnr: String, id: String): Boolean {
-        // Sjekk events eller innmelding i lokal DB, med orgnr-id
+    suspend fun alreadyRegistered(orgnr: String, id: String): Boolean {
         return innrapporteringRepository.findNewestStatus(orgnr, id) != null
     }
 
-    fun getStatus(orgnr: String, id: String): InnrapporteringStatus? {
-        // Sjekk events eller innmelding i lokal DB, med orgnr-id
-        // Hvis funnet, bruk nyeste event eller status i DB som nyeste status, retuner den
-        // Hvis ikke funnet: null
+    suspend fun getStatus(orgnr: String, id: String): InnrapporteringStatus? {
         return innrapporteringRepository.findNewestStatus(orgnr, id)
     }
 
-    fun register(orgnr: String, body: String): String {
-        val id: String = "" // todo lag ny id
+    suspend fun register(orgnr: String, body: String): String {
+        val id: String = Uuid.random().toString()
         register(orgnr, id, body)
         return id
     }
@@ -61,7 +52,7 @@ Uansett alternativ: ID-er i Fellesformatet må identifisere meldinger som hhv. e
 
 // todo skal det uansett lagres noe i eventmgr, eller er det kun for emottak-prosesser ?
      */
-    fun register(orgnr: String, id: String, body: String) {
+    suspend fun register(orgnr: String, id: String, body: String) {
         // Lag objektet som skal videresendes, bruk (orgnr + id) som unik ID inni objektet
         val sendInRequest = trekkInnmeldingModel.buildTrekkInnmelding_SendInRequest(orgnr, id, body)
         val fellesFormat = trekkInnmeldingModel.buildTrekkInnmelding_FellesFormat(orgnr, id, body)
@@ -69,7 +60,6 @@ Uansett alternativ: ID-er i Fellesformatet må identifisere meldinger som hhv. e
         // Send objektet til fagsystem (topic, MQ-kø)
         // todo publish, som i ebms-async eller ebms-send-in
 
-        // Lagre event eller innmelding i lokal DB, med orgnr-id
         innrapporteringRepository.register(orgnr, id)
 
         // Hvis noe gikk galt eller timeout: exception
