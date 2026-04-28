@@ -18,7 +18,6 @@ import no.nav.trekkapi.innmelding.TrekkInnmeldingService
 import no.nav.trekkapi.persistence.Database
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
 import no.nav.trekkapi.persistence.messageStatusDbConfig
-import no.nav.trekkapi.persistence.messageStatusMigrationConfig
 import no.nav.trekkapi.plugin.configureAuthentication
 import no.nav.trekkapi.plugin.configureContentNegotiation
 import no.nav.trekkapi.plugin.configureMetrics
