@@ -30,6 +30,7 @@ import kotlin.coroutines.coroutineContext
 val log: Logger = LoggerFactory.getLogger("no.nav.trekkapi.App")
 
 fun main(args: Array<String>) = SuspendApp {
+    log.info("--- Starting application")
     result {
         resourceScope {
             runServer()
@@ -39,12 +40,17 @@ fun main(args: Array<String>) = SuspendApp {
 }
 
 suspend fun ResourceScope.runServer() {
+    log.info("--- Getting config")
     val config = config()
+    log.info("--- Config loaded: $config")
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
+    log.info("--- Starting database")
     val database = Database(messageStatusDbConfig.value)
+    log.info("--- Calling migrate")
     database.migrate(messageStatusMigrationConfig.value)
 
+    log.info("--- Starting services")
     val trekkInnmeldingRepository = TrekkInnmeldingRepository(database)
 
     val trekkInnmeldingService = TrekkInnmeldingService(trekkInnmeldingRepository)
