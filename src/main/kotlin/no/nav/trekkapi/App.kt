@@ -47,8 +47,8 @@ suspend fun ResourceScope.runServer() {
 
     log.info("--- Starting database")
     val database = Database(messageStatusDbConfig.value)
-    log.info("--- Calling migrate")
-    database.migrate(messageStatusMigrationConfig.value)
+//    log.info("--- Calling migrate")
+//    database.migrate(messageStatusMigrationConfig.value)
 
     log.info("--- Starting services")
     val trekkInnmeldingRepository = TrekkInnmeldingRepository(database)
