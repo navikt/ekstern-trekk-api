@@ -6,6 +6,7 @@ import no.nav.trekkapi.innmelding.InnrapporteringStatus
 import no.nav.trekkapi.innmelding.MessageStatus
 import no.nav.trekkapi.innmelding.akseptert
 import no.nav.trekkapi.innmelding.avvist
+import no.nav.trekkapi.innmelding.buildDbId
 import no.nav.trekkapi.innmelding.underBehandling
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.persistence.table.MessageStatusTable
@@ -20,19 +21,15 @@ import org.jetbrains.exposed.sql.update
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
+// todo loag test for denne
 class TrekkInnmeldingRepository(private val database: Database) {
 
     suspend fun register(orgnr: String, id: String) {
-        val dbId = buildId(orgnr, id)
+        val dbId = buildDbId(orgnr, id)
         insert(dbId)
     }
 
-    fun buildId(orgnr: String, id: String): String {
-        return "$orgnr-$id"
-    }
-
-    suspend fun registerResponse(orgnr: String, id: String, akseptert: Boolean, beskrivelse: String? = null) {
-        val dbId = buildId(orgnr, id)
+    suspend fun registerResponse(dbId: String, akseptert: Boolean, beskrivelse: String? = null) {
         val status = if (akseptert) MessageStatusEnum.ACCEPTED else MessageStatusEnum.REJECTED
         update(dbId, status, description = beskrivelse)
     }
@@ -54,7 +51,7 @@ class TrekkInnmeldingRepository(private val database: Database) {
     }
 
     private suspend fun findStatus(orgnr: String, id: String): MessageStatus? {
-        val dbId = buildId(orgnr, id)
+        val dbId = buildDbId(orgnr, id)
         return get(dbId)
     }
 

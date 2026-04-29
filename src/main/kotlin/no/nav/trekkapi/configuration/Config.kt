@@ -15,6 +15,7 @@ data class Config(
     val environment: Environment,
     val database: Database,
     val kafka: Kafka,
+    val kafkaResponseQueue: KafkaResponseQueue,
     val server: Server
 )
 
@@ -29,6 +30,12 @@ data class Database(
     val maxConnectionPoolSizeForUser: MaxConnectionPoolSizeForUser,
     val maxConnectionPoolSizeForAdmin: MaxConnectionPoolSizeForAdmin,
     val distinctValuesRefreshRateInHours: DistinctValuesRefreshRateInHours
+)
+
+data class KafkaResponseQueue(
+    val active: Boolean,
+    val topic: String,
+    val initOffset: String
 )
 
 @JvmInline

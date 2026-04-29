@@ -14,6 +14,8 @@ import io.ktor.server.routing.put
 import no.nav.trekkapi.auth.orgNrFromTokenValidationContext
 import no.nav.trekkapi.log
 
+// todo loag test for denne, hvis vi får til maskinporten mock
+
 fun Route.innmeldingRoutes(
     trekkInnmeldingService: TrekkInnmeldingService
 ) {

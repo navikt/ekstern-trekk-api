@@ -9,6 +9,7 @@ dependencyResolutionManagement {
             version("suspendapp", "0.5.0")
             version("arrow", "2.0.1")
             version("emottak-utils", "0.3.7")
+            version("emottak-xsd", "0.0.9")
             version("kotlin-kafka", "0.4.1")
             version("logback", "1.5.18")
             version("logstash", "8.0")
@@ -49,6 +50,7 @@ dependencyResolutionManagement {
             library("arrow-suspendapp-ktor", "io.arrow-kt", "suspendapp-ktor").versionRef("suspendapp")
 
             library("emottak-utils", "no.nav.emottak", "emottak-utils").versionRef("emottak-utils")
+            library("emottak-payload-xsd", "no.nav.emottak", "emottak-payload-xsd").versionRef("emottak-xsd")
 
             library("logback", "ch.qos.logback", "logback-classic").versionRef("logback")
             library("logstash", "net.logstash.logback", "logstash-logback-encoder").versionRef("logstash")
@@ -76,6 +78,7 @@ dependencyResolutionManagement {
             library("ktor-server-test", "io.ktor", "ktor-server-test-host").versionRef("ktor-test")
 
             library("testcontainers-postgresql", "org.testcontainers", "postgresql").versionRef("testcontainers")
+            library("testcontainers-kafka", "org.testcontainers", "kafka").versionRef("testcontainers")
 
             library("mockk", "io.mockk", "mockk").versionRef("mockk")
 

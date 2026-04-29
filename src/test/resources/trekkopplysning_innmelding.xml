@@ -1,0 +1,74 @@
+<MsgHead
+        xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24">
+    <MsgInfo>
+        <Type V="INNRAPPORTERING_TREKK" DN="Innrapportering
+av trekk til NAV"/>
+        <MIGversion>v1.2 2006-05-24</MIGversion>
+        <GenDate>2026-03-06T15:22:35Z</GenDate>
+        <MsgId>7f41c4e9-b6bd-44a3-822b-622332b4e421</MsgId>
+        <Ack V="N" DN="Nei"/>
+        <Sender>
+            <Organisation>
+                <OrganisationName>AIDN AS</OrganisationName>
+                <Ident>
+                    <Id>8139944</Id>
+                    <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
+                </Ident>
+                <Organisation>
+                    <OrganisationName>Økonomi og oppgjør</OrganisationName>
+                    <Ident>
+                        <Id>8142626</Id>
+                        <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
+                    </Ident>
+                </Organisation>
+            </Organisation>
+        </Sender>
+        <Receiver>
+            <Organisation>
+                <OrganisationName>NAV IKT</OrganisationName>
+                <Ident>
+                    <Id>79768</Id>
+                    <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
+                </Ident>
+            </Organisation>
+        </Receiver>
+        <Patient>
+            <FamilyName>SEILBÅT</FamilyName>
+            <GivenName>DEMOKRATISK</GivenName>
+            <Sex V="2" DN="Kvinne"/>
+            <Ident>
+                <Id>***********</Id>
+                <TypeId V="FNR" S="2.16.578.1.12.4.1.1.8116" DN="Fødselsnummer"/>
+            </Ident>
+        </Patient>
+    </MsgInfo>
+    <Document>
+        <ContentDescription>SV:Innrapportering av trekk til NAV</ContentDescription>
+        <RefDoc>
+            <IssueDate V="2026-03-06T15:22:35Z"/>
+            <MsgType V="XML" DN="XML-instans"/>
+            <Content>
+                <InnrapporteringTrekk xmlns="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04"
+                                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                      xsi:schemaLocation="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04
+            InnrapporteringTrekk-2010-02-04.xsd">
+                    <Aksjonskode DN="Nytt trekk" V="NY"/>
+                    <Identifisering>
+                        <KreditorTrekkId>ee387905-4b77-47c2-9fba-e21847525c3e</KreditorTrekkId>
+                        <DebitorId>
+                            <Id>debitorId</Id>
+                            <TypeId DN="Fødselsnummer" S="2.16.578.1.12.4.1.1.8116" V="FNR"/>
+                        </DebitorId>
+                    </Identifisering>
+                    <Trekk>
+                        <KodeTrekktype DN="Vederlagstrekk" V="VEDE"/>
+                        <KodeTrekkAlternativ DN="Løpende trekk månedssats" V="LOPM"/>
+                        <Sats V="21573"/>
+                    </Trekk>
+                    <Periode><PeriodeFomDato>2026-04-01</PeriodeFomDato></Periode>
+                    <Kreditor><TSSId>tssId</TSSId></Kreditor>
+                </InnrapporteringTrekk>
+            </Content>
+        </RefDoc>
+    </Document>
+</MsgHead>

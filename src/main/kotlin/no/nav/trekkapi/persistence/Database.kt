@@ -2,6 +2,7 @@ package no.nav.trekkapi.persistence
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import no.nav.emottak.utils.environment.getEnvVar
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
 
@@ -18,6 +19,15 @@ class Database(
             .dataSource(migrationConfig.jdbcUrl, migrationConfig.username, migrationConfig.password)
             .initSql("SET ROLE \"$MESSAGE_STATUS_DB_NAME-admin\"")
             .lockRetryCount(50)
+            .also {
+                if (getEnvVar("NAIS_CLUSTER_NAME", "local") == "local") {
+                    it.locations("filesystem:src/main/resources/db/migration")
+                }
+                // When running in IDE, CWD is the project root (not module root)
+                if (getEnvVar("NAIS_CLUSTER_NAME", "local") == "test") {
+                    it.locations("filesystem:src/main/resources/db/migration")
+                }
+            }
             .load()
             .apply {
                 migrate()

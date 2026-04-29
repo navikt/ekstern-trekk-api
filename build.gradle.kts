@@ -55,7 +55,8 @@ repositories {
 dependencies {
     implementation(libs.logback)
     implementation(libs.logstash)
-    implementation(libs.emottak.utils)
+    implementation(libs.emottak.utils) // utils for env og config, kan erstattes med eget/lokalt
+    implementation(libs.emottak.payload.xsd) // brukes for å få Fellesformat. Kan evt erstattes med lib utenfor emottak
     implementation(libs.bundles.ktor)
     implementation(libs.bundles.arrow)
     implementation(libs.bundles.exposed)
@@ -73,5 +74,6 @@ dependencies {
     testImplementation(testLibs.bundles.kotest)
     testImplementation(testLibs.ktor.server.test)
     testImplementation(testLibs.testcontainers.postgresql)
+    testImplementation(testLibs.testcontainers.kafka)
     testImplementation(testLibs.mock.oauth2.server)
 }

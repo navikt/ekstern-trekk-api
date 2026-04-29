@@ -37,24 +37,9 @@ class TrekkInnmeldingService(val innrapporteringRepository: TrekkInnmeldingRepos
         return id
     }
 
-    /*
-    Innmelding, alternativ 1:
-ekstern-trekk-api lager en SendInRequest, som legges på inn-topicen til ebms-send-in.
-ebms-send-in er uendret, prosesserer denne helt likt som den gjør for meldinger via epost.
-
-Alternativ 2:
-ekstern-trekk-api lager Fellesformat, som legges på MQ-kø til fagsystemet.
-variant A: ebms-send-in uendret
-variant B: ebms-send-in fjerner kode for å lage Fellesformat og legge på MQ-kø,
-får et internt API-endepunkt i ekstern-trekk-api hvor den kan poste nødvendige ID-er og payloaden
-
-Uansett alternativ: ID-er i Fellesformatet må identifisere meldinger som hhv. epost-trekkopplysninger og http-trekkopplysninger.
-
 // todo skal det uansett lagres noe i eventmgr, eller er det kun for emottak-prosesser ?
-     */
     suspend fun register(orgnr: String, id: String, body: String) {
         // Lag objektet som skal videresendes, bruk (orgnr + id) som unik ID inni objektet
-        val sendInRequest = trekkInnmeldingModel.buildTrekkInnmelding_SendInRequest(orgnr, id, body)
         val fellesFormat = trekkInnmeldingModel.buildTrekkInnmelding_FellesFormat(orgnr, id, body)
 
         // Send objektet til fagsystem (topic, MQ-kø)
