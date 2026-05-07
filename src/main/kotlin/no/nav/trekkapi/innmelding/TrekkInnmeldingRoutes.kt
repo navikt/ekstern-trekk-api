@@ -16,7 +16,7 @@ import no.nav.trekkapi.log
 import java.io.InputStream
 import kotlin.use
 
-// todo loag test for denne, hvis vi får til maskinporten mock
+// todo lag test for denne, hvis vi får til maskinporten mock
 
 fun Route.innmeldingRoutes(
     trekkInnmeldingService: TrekkInnmeldingService
@@ -157,7 +157,6 @@ fun Route.testRoutes(
         log.debug("TEST Hent innrapporteringstatus kalt med id: $id")
 
         val orgnr = "123456789"
-
         val status = trekkInnmeldingService.getStatus(orgnr, id)
         if (status != null) {
             log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
@@ -165,6 +164,18 @@ fun Route.testRoutes(
         } else {
             log.warn("Finnes ingen status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
             call.respondText("Not found", contentType = ContentType.Text.Plain, status = HttpStatusCode.NotFound)
+        }
+    }
+
+    get("/testMq") {
+        log.info("Testing MQ......")
+        try {
+            trekkInnmeldingService.verifyConnection()
+            log.info("MQ connection OK")
+            call.respond("MQ connection OK")
+        } catch (e: Exception) {
+            log.error("Error testing MQ", e)
+            call.respond(e.localizedMessage ?: e.javaClass.simpleName)
         }
     }
 }

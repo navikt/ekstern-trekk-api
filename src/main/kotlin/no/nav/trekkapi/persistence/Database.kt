@@ -17,7 +17,7 @@ class Database(
     fun migrate(migrationConfig: HikariConfig) {
         Flyway.configure()
             .dataSource(migrationConfig.jdbcUrl, migrationConfig.username, migrationConfig.password)
-            .initSql("SET ROLE \"$MESSAGE_STATUS_DB_NAME-admin\"")
+//            .initSql("SET ROLE \"$MESSAGE_STATUS_DB_NAME-admin\"")
             .lockRetryCount(50)
             .also {
                 if (getEnvVar("NAIS_CLUSTER_NAME", "local") == "local") {

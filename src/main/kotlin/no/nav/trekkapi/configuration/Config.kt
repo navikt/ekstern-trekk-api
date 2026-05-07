@@ -18,6 +18,7 @@ data class Config(
     val database: Database,
     val kafka: Kafka,
     val kafkaResponseQueue: KafkaResponseQueue,
+    val trekkopplysningMq: TrekkopplysningMq,
     val server: Server
 )
 
@@ -34,11 +35,22 @@ data class Database(
     val distinctValuesRefreshRateInHours: DistinctValuesRefreshRateInHours
 )
 
+data class TrekkopplysningMq(
+    val hostname: Host,
+    val port: Int,
+    val queueManager: String,
+    val channel: String,
+    val queue: String
+)
+
 data class KafkaResponseQueue(
     val active: Boolean,
     val topic: String,
     val initOffset: String
 )
+
+@JvmInline
+value class Host(val value: String)
 
 @JvmInline
 value class NaisClusterName(val value: String)

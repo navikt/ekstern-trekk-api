@@ -59,6 +59,9 @@ spec:
     - "https://ekstern-trekk-api.intern.dev.nav.no"
   vault:
     enabled: true
+    paths:
+      - kvPath: /serviceuser/data/dev/srvemottakmq
+        mountPath: /secret/srvemottakmq
   kafka:
     pool: nav-dev
   gcp:

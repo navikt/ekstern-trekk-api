@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.vault.jdbc)
     implementation(libs.kotlin.kafka)
     implementation(libs.token.validation.ktor.v3)
+    implementation("com.ibm.mq:com.ibm.mq.allclient:9.4.0.0")
 
     testImplementation(kotlin("test"))
     testImplementation(testLibs.mockk)

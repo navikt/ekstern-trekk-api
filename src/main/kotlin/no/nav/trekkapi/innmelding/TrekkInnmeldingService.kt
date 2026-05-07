@@ -1,6 +1,10 @@
 package no.nav.trekkapi.innmelding
 
 import kotlinx.serialization.Serializable
+import no.nav.emottak.utils.environment.getEnvVar
+import no.nav.trekkapi.configuration.TrekkopplysningMq
+import no.nav.trekkapi.fellesformat.marshalTrekkopplysning
+import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import java.time.Instant
@@ -22,7 +26,13 @@ fun avvist(beskrivelse: String) = InnrapporteringStatus(
     beskrivelse
 )
 
-class TrekkInnmeldingService(val innrapporteringRepository: TrekkInnmeldingRepository, val trekkInnmeldingModel: TrekkInnmeldingModel = TrekkInnmeldingModel()) {
+class TrekkInnmeldingService(
+    trekkopplysningMq: TrekkopplysningMq,
+    val innrapporteringRepository: TrekkInnmeldingRepository,
+    val trekkInnmeldingModel: TrekkInnmeldingModel = TrekkInnmeldingModel(),
+    val jmSclient: JmsClient = JmsClient(trekkopplysningMq),
+    val queue: String = trekkopplysningMq.queue
+) {
     suspend fun alreadyRegistered(orgnr: String, id: String): Boolean {
         return innrapporteringRepository.findNewestStatus(orgnr, id) != null
     }
@@ -38,14 +48,22 @@ class TrekkInnmeldingService(val innrapporteringRepository: TrekkInnmeldingRepos
     }
 
     suspend fun register(orgnr: String, id: String, body: String) {
-        // Lag objektet som skal videresendes, bruk (orgnr + id) som unik ID inni objektet
         val fellesFormat = trekkInnmeldingModel.buildTrekkInnmelding_FellesFormat(orgnr, id, body)
+        val messageBody = marshalTrekkopplysning(fellesFormat)
 
-        // Send objektet til fagsystem (topic, MQ-kø)
-        // todo publish, som i ebms-async eller ebms-send-in
+        val doSend = getEnvVar("USE_MQ", "false").toBoolean()
+        if (doSend) {
+            log.debug("Sending in trekkopplysning with body: " + messageBody)
+            jmSclient.sendMessage(queue, messageBody)
+        } else {
+            log.debug("MQ turned OFF, would send in trekkopplysning with body: " + messageBody)
+        }
 
         innrapporteringRepository.register(orgnr, id)
+        // todo Hvis noe gikk galt eller timeout: exception
+    }
 
-        // Hvis noe gikk galt eller timeout: exception
+    fun verifyConnection() {
+        jmSclient.verifyConnection()
     }
 }

@@ -59,7 +59,8 @@ suspend fun ResourceScope.runServer() {
     println(" ************ Setting up services ")
     val trekkInnmeldingModel = TrekkInnmeldingModel()
     val trekkInnmeldingRepository = TrekkInnmeldingRepository(database)
-    val trekkInnmeldingService = TrekkInnmeldingService(trekkInnmeldingRepository)
+    val mqConfig = config.trekkopplysningMq
+    val trekkInnmeldingService = TrekkInnmeldingService(mqConfig, trekkInnmeldingRepository)
 
     println(" ************ Starting server ")
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)

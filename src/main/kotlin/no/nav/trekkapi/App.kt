@@ -55,7 +55,8 @@ suspend fun ResourceScope.runServer() {
     val trekkInnmeldingModel = TrekkInnmeldingModel()
     val trekkInnmeldingRepository = TrekkInnmeldingRepository(database)
 
-    val trekkInnmeldingService = TrekkInnmeldingService(trekkInnmeldingRepository)
+    val mqConfig = config.trekkopplysningMq
+    val trekkInnmeldingService = TrekkInnmeldingService(mqConfig, trekkInnmeldingRepository)
 
     val serverConfig = config.server
     server(
