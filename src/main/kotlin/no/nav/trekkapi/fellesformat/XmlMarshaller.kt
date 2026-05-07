@@ -1,19 +1,14 @@
 package no.nav.trekkapi.fellesformat
 
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper
+import jakarta.xml.bind.JAXBContext
 import org.w3c.dom.Node
 import java.io.ByteArrayOutputStream
 import java.io.StringWriter
-import javax.xml.bind.JAXBContext
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.XMLStreamWriter
 
-class XmlMarshaller(jaxbContext: JAXBContext, namespacePrefixMapper: NamespacePrefixMapper? = null) {
-    private val marshaller = jaxbContext.createMarshaller().apply {
-        if (namespacePrefixMapper != null) {
-            this.setProperty("com.sun.xml.bind.namespacePrefixMapper", namespacePrefixMapper)
-        }
-    }
+class XmlMarshaller(jaxbContext: JAXBContext) {
+    private val marshaller = jaxbContext.createMarshaller()
     private val unmarshaller = jaxbContext.createUnmarshaller()
     private val marshallingMonitor = Any()
     private val unmarshallingMonitor = Any()

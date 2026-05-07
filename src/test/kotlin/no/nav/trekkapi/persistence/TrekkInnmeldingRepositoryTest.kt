@@ -1,16 +1,16 @@
 package no.nav.trekkapi.persistence
 
 import com.zaxxer.hikari.HikariConfig
-import io.kotest.common.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.assertNotNull
-import org.junit.jupiter.api.assertNull
 import org.testcontainers.containers.PostgreSQLContainer
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 // For å kunne opprette DB bare 1 gang for hele testklassen

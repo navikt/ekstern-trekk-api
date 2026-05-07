@@ -1,17 +1,17 @@
 package no.nav.trekkapi.fellesformat
 
+import jakarta.xml.bind.JAXBContext
+import jakarta.xml.bind.JAXBContext.newInstance
 import no.trygdeetaten.xml.eiff._1.EIFellesformat
-import no.trygdeetaten.xml.eiff._1.ObjectFactory
 import org.apache.cxf.staxutils.DelegatingXMLStreamWriter
 import java.io.StringWriter
-import javax.xml.bind.JAXBContext
-import javax.xml.bind.JAXBContext.newInstance
 import javax.xml.stream.XMLOutputFactory
 import javax.xml.stream.XMLStreamWriter
 
 val trekkopplysningXmlMarshaller = XmlMarshaller(
     newInstance(
-        ObjectFactory::class.java
+        no.trygdeetaten.xml.eiff._1.ObjectFactory::class.java,
+        no.kith.xmlstds.msghead._2006_05_24.ObjectFactory::class.java
     )
 )
 
