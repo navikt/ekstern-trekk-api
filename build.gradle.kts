@@ -15,7 +15,9 @@ application {
 tasks {
     shadowJar {
         archiveFileName.set("app.jar")
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        filesMatching("META-INF/services/**") {
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
     }
     ktlintFormat {
         this.enabled = true
