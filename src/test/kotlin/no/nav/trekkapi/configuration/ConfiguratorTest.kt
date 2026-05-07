@@ -28,7 +28,7 @@ class ConfiguratorTest {
     @Test
     fun `config has expected kafkaResponseQueue settings`() {
         val config = config()
-        assertEquals("team-emottak.trekkapi.response", config.kafkaResponseQueue.topic)
+        assertEquals("team-emottak.trekkapi.respons", config.kafkaResponseQueue.topic)
         assertTrue(config.kafkaResponseQueue.active)
     }
 
