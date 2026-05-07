@@ -23,6 +23,7 @@ class Database(
             .dataSource(migrationConfig.jdbcUrl, migrationConfig.username, migrationConfig.password)
             .initSql("SET ROLE \"$MESSAGE_STATUS_DB_NAME-admin\"")
             .locations(migrationPath)
+            .skipDefaultCallbacks(true)
             .lockRetryCount(50)
             .load()
             .migrate()
