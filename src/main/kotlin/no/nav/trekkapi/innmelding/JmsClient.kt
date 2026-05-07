@@ -2,8 +2,6 @@ package no.nav.trekkapi.innmelding
 
 import com.ibm.mq.jms.MQQueueConnectionFactory
 import com.ibm.msg.client.wmq.WMQConstants
-import no.nav.emottak.utils.environment.getEnvVar
-import no.nav.emottak.utils.environment.getSecret
 import no.nav.trekkapi.configuration.TrekkopplysningMq
 import no.nav.trekkapi.log
 import javax.jms.Session
@@ -12,9 +10,8 @@ import javax.jms.Session
 class JmsClient(
     config: TrekkopplysningMq,
     val factory: MQQueueConnectionFactory = MQQueueConnectionFactory(),
-    val secretPath: String = getEnvVar("SERVICEUSERMQ_SECRET_PATH", "/dummy/path"),
-    var username: String = getSecret("$secretPath/username", "testUsername"),
-    var password: String = getSecret("$secretPath/password", "testPassword")
+    val username: String = config.username,
+    val password: String = config.password
 ) {
 
     /*

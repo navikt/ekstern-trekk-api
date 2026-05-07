@@ -40,7 +40,9 @@ data class TrekkopplysningMq(
     val port: Int,
     val queueManager: String,
     val channel: String,
-    val queue: String
+    val queue: String,
+    val username: String,
+    val password: String
 )
 
 data class KafkaResponseQueue(
