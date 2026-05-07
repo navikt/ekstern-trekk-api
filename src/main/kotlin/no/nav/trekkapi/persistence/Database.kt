@@ -21,7 +21,6 @@ class Database(
         }
         Flyway.configure()
             .dataSource(migrationConfig.jdbcUrl, migrationConfig.username, migrationConfig.password)
-            .initSql("SET ROLE \"$MESSAGE_STATUS_DB_NAME-admin\"")
             .locations(migrationPath)
             .callbackLocations(migrationPath)
             .lockRetryCount(50)
