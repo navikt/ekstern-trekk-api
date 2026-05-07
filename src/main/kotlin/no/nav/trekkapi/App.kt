@@ -37,6 +37,9 @@ fun main(args: Array<String>) = SuspendApp {
             runServer()
             awaitCancellation()
         }
+    }.onFailure { error ->
+        log.error("Application startup failed", error)
+        throw error
     }
 }
 
