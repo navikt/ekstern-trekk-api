@@ -57,11 +57,9 @@ spec:
   ingresses:
     - "https://ekstern-trekk-api.ekstern.dev.nav.no"
     - "https://ekstern-trekk-api.intern.dev.nav.no"
-  vault:
-    enabled: true
-    paths:
-      - kvPath: /serviceuser/data/dev/srvemottakmq
-        mountPath: /secret/srvemottakmq
+  envFrom:
+    - secret: ekstern-trekk-api-secret
+    - configmap: ekstern-trekk-api-config
   kafka:
     pool: nav-dev
   gcp:
@@ -77,3 +75,13 @@ spec:
   env:
     - name: EMOTTAK_LOGGING_LEVEL
       value: DEBUG
+    - name: TREKKOPPL_MQ_HOST
+      value: "mqls04.preprod.local"
+    - name: TREKKOPPL_MQ_PORT
+      value: "1413"
+    - name: TREKKOPPL_MQ_QMGR
+      value: "MQLS04"
+    - name: TREKKOPPL_MQ_CHANNEL
+      value: "Q1_EMOTTAK_ASYNCH"
+    - name: TREKKOPPL_MQ_QUEUE
+      value: "QA.Q1_231.OB04_INNRAPP_TREKK"

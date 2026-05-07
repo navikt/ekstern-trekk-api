@@ -25,10 +25,10 @@ class JmsClient(
     There is no Channel defined in Fasit for old eMottak, only the queuemanager (MQLS04 in Q1).
      */
     init {
-        factory.setHostName(config.hostname.value)
-        factory.setPort(config.port)
-        factory.setQueueManager(config.queueManager)
-        factory.setChannel(config.channel)
+        factory.hostName = config.hostname.value
+        factory.port = config.port
+        factory.queueManager = config.queueManager
+        factory.channel = config.channel
         factory.setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT)
         log.debug("MQ User: $username")
     }

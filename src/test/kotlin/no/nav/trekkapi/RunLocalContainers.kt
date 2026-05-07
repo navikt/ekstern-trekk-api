@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.trekkapi.configuration.config
 import no.nav.trekkapi.persistence.Database
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import java.io.File
 
 const val START_MOCK_OAUTH = true
@@ -33,12 +33,12 @@ fun main() {
         mockOAuth2Server = MockOAuth2Server().also { it.start(port = MOCK_OAUTH_PORT) }
     }
 
-    var dbContainer: PostgreSQLContainer<Nothing>? = null
+    var dbContainer: PostgreSQLContainer? = null
     if (START_POSTGRES) {
         println("=== Starting Postgres ==")
         // Make flyway find the migration scripts, see Database.kt
         System.setProperty("NAIS_CLUSTER_NAME", "test")
-        dbContainer = ebmsPostgres()
+        dbContainer = trekkApiPostgres()
         dbContainer.start()
         val database = Database(dbContainer.testConfiguration())
 

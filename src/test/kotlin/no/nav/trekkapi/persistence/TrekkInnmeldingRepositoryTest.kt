@@ -7,7 +7,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -18,7 +18,7 @@ import kotlin.test.assertTrue
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrekkInnmeldingRepositoryTest {
 
-    lateinit var dbContainer: PostgreSQLContainer<Nothing>
+    lateinit var dbContainer: PostgreSQLContainer
     lateinit var db: Database
 
     @BeforeAll
@@ -109,7 +109,7 @@ class TrekkInnmeldingRepositoryTest {
     }
 }
 
-fun PostgreSQLContainer<Nothing>.testConfiguration(user: String = "admin"): HikariConfig {
+fun PostgreSQLContainer.testConfiguration(user: String = "admin"): HikariConfig {
     val (username, password) = when (user) {
         "admin" -> this@testConfiguration.username to this@testConfiguration.password
         "user" -> "$MESSAGE_STATUS_DB_NAME-user" to "app_pass"
@@ -128,8 +128,8 @@ fun PostgreSQLContainer<Nothing>.testConfiguration(user: String = "admin"): Hika
     }
 }
 
-fun buildDatabaseContainer(): PostgreSQLContainer<Nothing> {
-    return PostgreSQLContainer<Nothing>("postgres:15").apply {
+fun buildDatabaseContainer(): PostgreSQLContainer {
+    return PostgreSQLContainer("postgres:15").apply {
         withInitScript("init_roles.sql")
         withUsername("$MESSAGE_STATUS_DB_NAME-admin")
         withReuse(true)
