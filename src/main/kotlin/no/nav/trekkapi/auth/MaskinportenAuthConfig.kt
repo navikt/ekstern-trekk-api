@@ -19,7 +19,7 @@ const val SCOPE_INNMELDING = "nav:utbetaling/trekkopplysning/innmelding"
 fun getInnmeldingConfig(): TokenSupportConfig = TokenSupportConfig(
     IssuerConfig(
         name = MASKINPORTEN_AUTH_INMMELDING,
-        discoveryUrl = getEnvVar("MASKINPORTEN_WELL_KNOWN_URL"),
+        discoveryUrl = getEnvVar("MASKINPORTEN_WELL_KNOWN_URL", "https://test.maskinporten.no/.well-known/oauth-authorization-server"),
         acceptedAudience = listOf(SCOPE_INNMELDING),
         optionalClaims = listOf("aud", "sub")
     )

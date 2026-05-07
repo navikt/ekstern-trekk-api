@@ -72,7 +72,7 @@ suspend fun ResourceScope.runServer() {
     )
 
     println(" ************ Starting response receiver ")
-    log.debug("Configuration: {}", config)
+    log.info("Configuration: {}", config)
     if (config.kafkaResponseQueue.active) {
         log.info("Starting response receiver")
         val eventReceiverScope = coroutineScope(kotlin.coroutines.coroutineContext + Dispatchers.IO)

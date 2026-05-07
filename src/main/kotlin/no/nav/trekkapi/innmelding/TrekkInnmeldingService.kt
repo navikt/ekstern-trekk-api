@@ -37,7 +37,6 @@ class TrekkInnmeldingService(val innrapporteringRepository: TrekkInnmeldingRepos
         return id
     }
 
-// todo skal det uansett lagres noe i eventmgr, eller er det kun for emottak-prosesser ?
     suspend fun register(orgnr: String, id: String, body: String) {
         // Lag objektet som skal videresendes, bruk (orgnr + id) som unik ID inni objektet
         val fellesFormat = trekkInnmeldingModel.buildTrekkInnmelding_FellesFormat(orgnr, id, body)

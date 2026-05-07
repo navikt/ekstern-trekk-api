@@ -2,6 +2,9 @@ package no.nav.trekkapi.configuration
 
 import no.nav.emottak.utils.config.Kafka
 import no.nav.emottak.utils.config.Server
+import no.nav.emottak.utils.config.toProperties
+import no.nav.emottak.utils.environment.getEnvVar
+import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
 import org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG
@@ -9,7 +12,6 @@ import org.apache.kafka.common.config.SslConfigs.SSL_KEYSTORE_TYPE_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG
-import java.util.Properties
 
 data class Config(
     val environment: Environment,
@@ -50,13 +52,17 @@ value class MaxConnectionPoolSizeForAdmin(val value: Int)
 @JvmInline
 value class DistinctValuesRefreshRateInHours(val value: Long)
 
-fun Kafka.toProperties() = Properties()
-    .apply {
-        put(SECURITY_PROTOCOL_CONFIG, securityProtocol.value)
-        put(SSL_KEYSTORE_TYPE_CONFIG, keystoreType.value)
-        put(SSL_KEYSTORE_LOCATION_CONFIG, keystoreLocation.value)
-        put(SSL_KEYSTORE_PASSWORD_CONFIG, keystorePassword.value)
-        put(SSL_TRUSTSTORE_TYPE_CONFIG, truststoreType.value)
-        put(SSL_TRUSTSTORE_LOCATION_CONFIG, truststoreLocation.value)
-        put(SSL_TRUSTSTORE_PASSWORD_CONFIG, truststorePassword.value)
-    }
+fun Kafka.toProperties() =
+    toProperties()
+        .apply {
+            put(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
+            if (getEnvVar("NAIS_CLUSTER_NAME", "local") == "local") {
+                remove(SECURITY_PROTOCOL_CONFIG, securityProtocol.value)
+                remove(SSL_KEYSTORE_TYPE_CONFIG, keystoreType.value)
+                remove(SSL_KEYSTORE_LOCATION_CONFIG, keystoreLocation.value)
+                remove(SSL_KEYSTORE_PASSWORD_CONFIG, keystorePassword.value)
+                remove(SSL_TRUSTSTORE_TYPE_CONFIG, truststoreType.value)
+                remove(SSL_TRUSTSTORE_LOCATION_CONFIG, truststoreLocation.value)
+                remove(SSL_TRUSTSTORE_PASSWORD_CONFIG, truststorePassword.value)
+            }
+        }

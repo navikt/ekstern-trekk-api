@@ -20,7 +20,7 @@ import no.nav.trekkapi.innmelding.startResponseReceiver
 import no.nav.trekkapi.persistence.Database
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
 import no.nav.trekkapi.persistence.messageStatusDbConfig
-import no.nav.trekkapi.plugin.configureAuthentication
+import no.nav.trekkapi.persistence.messageStatusMigrationConfig
 import no.nav.trekkapi.plugin.configureContentNegotiation
 import no.nav.trekkapi.plugin.configureMetrics
 import no.nav.trekkapi.plugin.configureRoutes
@@ -48,8 +48,8 @@ suspend fun ResourceScope.runServer() {
 
     log.info("--- Starting database")
     val database = Database(messageStatusDbConfig.value)
-//    log.info("--- Calling migrate")
-//    database.migrate(messageStatusMigrationConfig.value)
+    log.info("--- Calling migrate")
+    database.migrate(messageStatusMigrationConfig.value)
 
     log.info("--- Starting services")
     val trekkInnmeldingModel = TrekkInnmeldingModel()
@@ -84,10 +84,15 @@ fun trekkapiModule(
     trekkInnmeldingService: TrekkInnmeldingService,
     prometheusMeterRegistry: PrometheusMeterRegistry
 ): Application.() -> Unit {
+    log.info("Configure plugins and routes")
     return {
         configureMetrics(prometheusMeterRegistry)
+        log.info("Configured prometheus metrics")
         configureContentNegotiation()
-        configureAuthentication()
+        log.info("Configured content negotiation (JSON)")
+//        configureAuthentication() HANGS forever ??
+//        log.info("Configured authentication")
         configureRoutes(trekkInnmeldingService, prometheusMeterRegistry)
+        log.info("Configured routes")
     }
 }

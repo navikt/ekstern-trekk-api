@@ -43,11 +43,13 @@ suspend fun startResponseReceiver(
             val akseptert = trekkInnmeldingModel.akseptert(fellesFormat)
             if (akseptert) {
                 trekkInnmeldingRepository.registerResponse(dbId, true, null)
+                log.info("Response på trekkopplysningsmelding med id $dbId er lagret, status: akseptert")
             } else {
                 val avvist = trekkInnmeldingModel.avvist(fellesFormat)
                 if (avvist) {
                     val beskrivelse = trekkInnmeldingModel.hentAvvisningsBeskrivelse(fellesFormat)
                     trekkInnmeldingRepository.registerResponse(dbId, false, beskrivelse)
+                    log.info("Response på trekkopplysningsmelding med id $dbId er lagret, status: avvist, beskrivelse: $beskrivelse")
                 } else {
                     log.error("Ukjent status for trekkopplysningsmelding med id: $dbId")
                 }

@@ -39,8 +39,8 @@
             <Id>7f41c4e9-b6bd-44a3-822b-622332b4e421</Id>
         </OriginalMsgId>
     </AppRec>
-    <MottakenhetBlokk ediLoggId="trekkapi-69abb69f-b491-4d34-aeb1-10c02c7b98b6" avsender="TODO1"
-                      ebXMLSamtaleId="91e01f3c-b754-4ea3-98fe-07c249661bba" meldingsType="xml" avsenderRef="TODO2"
+    <MottakenhetBlokk ediLoggId="trekkapi-69abb69f-b491-4d34-aeb1-10c02c7b98b6" avsender="123456789" orgNummer="123456789"
+                      ebXMLSamtaleId="91e01f3c-b754-4ea3-98fe-07c249661bba" meldingsType="xml" avsenderRef="someRef"
                       mottattDatotid="2026-03-10T11:56:57.181Z" partnerReferanse="nav:qass:36181"
                       herIdentifikator="8142626" ebRole="Ytelsesutbetaler" ebService="Trekkopplysning"
                       ebAction="Avvisning"/>

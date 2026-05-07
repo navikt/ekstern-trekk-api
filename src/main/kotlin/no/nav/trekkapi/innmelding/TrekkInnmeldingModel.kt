@@ -6,6 +6,7 @@ import no.nav.trekkapi.fellesformat.createEIFellesFormat_Trekkopplysning
 import no.nav.trekkapi.fellesformat.unmarshal
 import no.nav.trekkapi.log
 import no.trygdeetaten.xml.eiff._1.EIFellesformat
+import java.time.Instant
 
 fun buildDbId(orgnr: String, id: String): String {
     return "$orgnr-$id"
@@ -30,12 +31,12 @@ class TrekkInnmeldingModel {
     // Holder rede på "formatene" i
     // objekter som skal sendes i retning fagsystem og responsene som kommer tilbake (Fellesformat)
 
-    fun buildTrekkInnmelding_FellesFormat(orgnr: String, id: String, payload: String): EIFellesformat {
+    fun buildTrekkInnmelding_FellesFormat(orgnr: String, id: String, payload: String, timestamp: Instant? = Instant.now()): EIFellesformat {
         val conversationId = buildFagsystemId(orgnr, id)
         val messageId = conversationId // NB: denne blir brukt som ediLoggId, som igjen brukes av respons-router
         val inputTrekkopplysning = InputTrekkopplysning(conversationId, messageId, payload)
         val authData = AuthData("", orgnr, "")
-        return createEIFellesFormat_Trekkopplysning(inputTrekkopplysning, authData)
+        return createEIFellesFormat_Trekkopplysning(inputTrekkopplysning, authData, timestamp!!)
     }
 
     fun parseTrekkInnmeldingResponse_FellesFormat(message: ByteArray): EIFellesformat {

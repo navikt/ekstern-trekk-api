@@ -21,7 +21,6 @@ import org.jetbrains.exposed.sql.update
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-// todo loag test for denne
 class TrekkInnmeldingRepository(private val database: Database) {
 
     suspend fun register(orgnr: String, id: String) {

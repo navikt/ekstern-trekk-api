@@ -15,9 +15,17 @@ import kotlin.uuid.Uuid
 // When run: call the function you want, add more if needed. Will connect to kafka/postgres as started by RunLocalContainers
 fun main() {
     val client = LocalTestClient()
-//    client.putMessageOnResponseTopic() // todo make file with test message
+
+    // Simulert innmelding kan gjøres ved å GET'e http://localhost:8080/test/putinnrapportering/{id}
+    // Etter det kan det verifiseres at DB inneholder ny meldingsstatus for "123456789-id"
+    // Simulert respons kan gjøres ved putMessageOnResponseTopic, med ediLoggId = "trekkapi-123456789-id"
+    // Etter det kan det verifiseres at DB inneholder oppdatert meldingsstatus for "123456789-id"
+    // Meldingsstatus kan også hentes ved å GET'e http://localhost:8080/test/innrapportering/{id}
+
+//    client.putMessageOnResponseTopic("trekkapi-123456789-aage1")
 //    client.listAllMessages("team-emottak.trekkapi.response")
-    client.readDb("select count(*) from message_status")
+//    client.readDb("select count(*) from message_status")
+    client.readDb("select * from message_status")
 }
 
 class LocalTestClient {
@@ -33,12 +41,13 @@ class LocalTestClient {
 
     val kafkaProducer = KafkaProducer<String, String>(kafkaProperties)
 
-    fun putMessageOnResponseTopic() {
+    fun putMessageOnResponseTopic(ediLoggId: String = "trekkapi-123456789-id") {
         val topic = "team-emottak.trekkapi.response"
         val key = Uuid.random().toString()
-        val value = readClasspathFile("testPayload.xml")!! // todo
+        val value = readClasspathFile("trekkopplysning_respons.xml")!!
+        val edited = value.replace("trekkapi-69abb69f-b491-4d34-aeb1-10c02c7b98b6", ediLoggId)
         val headers = emptyList<RecordHeader>()
-        sendMessage(topic, key, value, headers)
+        sendMessage(topic, key, edited, headers)
     }
 
     fun sendMessage(topic: String, key: String, value: String, headers: List<Header> = emptyList()) {
