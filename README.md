@@ -2,13 +2,10 @@
 API for eksterne samhandlere, for å kunne melde inn trekkopplysninger til NAV
 
 APIet skal aksesseres via Maskinporten, og er tenkt brukt slik:
-1. Klient sender 1 trekkopplysningsdokument som body til et av disse endepunktene:
+1. Klient sender 1 trekkopplysningsdokument som body til dette endepunktet:
 - `POST /v1/innrapportering`
-- `PUT /v1/innrapportering/{id}`
-<br>I det første alternativet vil det genereres en ID.
-<br>I begge tilfeller legges en URL som inkluderer IDen i respons-headeren "Location"<BR> 
+<br>URL for å finne status finnes i respons-headeren "Location"<BR> 
   `Location: /v1/innrapportering/{id}`
-<br>Denne URLen kan brukes til å lese status på behandling av dokumentet
 2. Klienten poller status på behandling av dokumentet
 - `GET /v1/innrapportering/{id}`
 <br>Responsen er en JSON som en av disse:
@@ -21,7 +18,7 @@ Kjøre lokalt:
 - start `RunLocalContainers` i IDEen.
 - start `LocalApp` i IDEen.
 - verifisere innhold i DB eller på topics: kjør `LocalTestClient` i IDEen, med passende innhold.
-- sende inn trekkopplysning (steg 1 over): `GET localhost:8080/test/putinnrapportering/{id}`. 
+- sende inn trekkopplysning (steg 1 over): `GET localhost:8080/test/putinnrapportering`. 
 Dette fører til at dokumentet i `testbody.xml` sendes inn.
 - hente status (steg 2 over): `GET localhost:8080/test/innrapportering/{id}`
 - simulere mottatt respons fra fagsystem: kjør `LocalTestClient` i IDEen, med passende innhold.
