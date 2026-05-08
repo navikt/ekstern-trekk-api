@@ -52,7 +52,8 @@ class TrekkInnmeldingRepositoryTest {
             }
             exec("SELECT * FROM message_status") { rs ->
                 rs.next()
-                assertEquals("123451111-theIdOfTheInsertedRecord", rs.getString("message_id"))
+                assertEquals("123451111", rs.getString("org_nr"))
+                assertEquals("theIdOfTheInsertedRecord", rs.getString("message_id"))
                 assertNotNull(rs.getTimestamp("processed_at"))
                 assertEquals("BEING_PROCESSED", rs.getString("latest_status"))
                 assertNull(rs.getTimestamp("response_at"))
@@ -69,13 +70,14 @@ class TrekkInnmeldingRepositoryTest {
         val id = "theIdOfTheInsertedRecord"
         newSuspendedTransaction {
             repo.register(orgnr, id)
-            repo.registerResponse("123456789-theIdOfTheInsertedRecord", true)
+            repo.registerResponse("123456789", "theIdOfTheInsertedRecord", true)
             val status = repo.findNewestStatus(orgnr, id)
             assertEquals("Melding ferdig behandlet", status!!.status)
             assertTrue(status.description!!.startsWith("Kvittering mottatt"))
             exec("SELECT * FROM message_status") { rs ->
                 rs.next()
-                assertEquals("123456789-theIdOfTheInsertedRecord", rs.getString("message_id"))
+                assertEquals("123456789", rs.getString("org_nr"))
+                assertEquals("theIdOfTheInsertedRecord", rs.getString("message_id"))
                 assertNotNull(rs.getTimestamp("processed_at"))
                 assertEquals("ACCEPTED", rs.getString("latest_status"))
                 assertNotNull(rs.getTimestamp("response_at"))
@@ -92,13 +94,14 @@ class TrekkInnmeldingRepositoryTest {
         val id = "theIdOfTheInsertedRecord"
         newSuspendedTransaction {
             repo.register(orgnr, id)
-            repo.registerResponse("123456789-theIdOfTheInsertedRecord", false, "Avvist av test")
+            repo.registerResponse("123456789", "theIdOfTheInsertedRecord", false, "Avvist av test")
             val status = repo.findNewestStatus(orgnr, id)
             assertEquals("Melding behandlet, ikke akseptert", status!!.status)
             assertEquals("Avvist av test", status.description!!)
             exec("SELECT * FROM message_status") { rs ->
                 rs.next()
-                assertEquals("123456789-theIdOfTheInsertedRecord", rs.getString("message_id"))
+                assertEquals("123456789", rs.getString("org_nr"))
+                assertEquals("theIdOfTheInsertedRecord", rs.getString("message_id"))
                 assertNotNull(rs.getTimestamp("processed_at"))
                 assertEquals("REJECTED", rs.getString("latest_status"))
                 assertNotNull(rs.getTimestamp("response_at"))
