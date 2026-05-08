@@ -39,7 +39,7 @@ suspend fun startResponseReceiver(
         .map { record ->
             log.debug("Processing record: {}", record)
             val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponse_FellesFormat(record.value())
-            val orgnrOgMeldingsId = trekkInnmeldingModel.orgnrOgMeldingsId(fellesFormat)
+            val (orgnummer, meldingsid) = trekkInnmeldingModel.orgnrOgMeldingsId(fellesFormat)
             val akseptert = trekkInnmeldingModel.akseptert(fellesFormat)
             if (akseptert) {
                 trekkInnmeldingRepository.registerResponse(orgnrOgMeldingsId.first, orgnrOgMeldingsId.second, true, null)
