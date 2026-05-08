@@ -1,10 +1,10 @@
 package no.nav.trekkapi
 
 import com.zaxxer.hikari.HikariConfig
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
-fun ebmsPostgres(): PostgreSQLContainer<Nothing> =
-    PostgreSQLContainer<Nothing>("postgres:15").apply {
+fun trekkApiPostgres(): PostgreSQLContainer =
+    PostgreSQLContainer("postgres:15").apply {
         withUsername("ekstern-trekk-api-db-admin")
         withReuse(true)
         withLabel("app-navn", "ekstern-trekk-api")
@@ -14,7 +14,7 @@ fun ebmsPostgres(): PostgreSQLContainer<Nothing> =
         )
     }
 
-fun PostgreSQLContainer<Nothing>.testConfiguration(): HikariConfig {
+fun PostgreSQLContainer.testConfiguration(): HikariConfig {
     return HikariConfig().apply {
         jdbcUrl = this@testConfiguration.jdbcUrl
         username = this@testConfiguration.username

@@ -2,8 +2,6 @@ package no.nav.trekkapi.innmelding
 
 import com.ibm.mq.jms.MQQueueConnectionFactory
 import com.ibm.msg.client.wmq.WMQConstants
-import no.nav.emottak.utils.environment.getEnvVar
-import no.nav.emottak.utils.environment.getSecret
 import no.nav.trekkapi.configuration.TrekkopplysningMq
 import no.nav.trekkapi.log
 import javax.jms.Session
@@ -12,9 +10,8 @@ import javax.jms.Session
 class JmsClient(
     config: TrekkopplysningMq,
     val factory: MQQueueConnectionFactory = MQQueueConnectionFactory(),
-    val secretPath: String = getEnvVar("SERVICEUSERMQ_SECRET_PATH", "/dummy/path"),
-    var username: String = getSecret("$secretPath/username", "testUsername"),
-    var password: String = getSecret("$secretPath/password", "testPassword")
+    val username: String = config.username,
+    val password: String = config.password
 ) {
 
     /*
@@ -25,10 +22,10 @@ class JmsClient(
     There is no Channel defined in Fasit for old eMottak, only the queuemanager (MQLS04 in Q1).
      */
     init {
-        factory.setHostName(config.hostname.value)
-        factory.setPort(config.port)
-        factory.setQueueManager(config.queueManager)
-        factory.setChannel(config.channel)
+        factory.hostName = config.hostname.value
+        factory.port = config.port
+        factory.queueManager = config.queueManager
+        factory.channel = config.channel
         factory.setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT)
         log.debug("MQ User: $username")
     }

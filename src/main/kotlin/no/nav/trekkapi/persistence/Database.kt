@@ -15,22 +15,16 @@ class Database(
     }
     val db = Database.connect(dataSource)
     fun migrate(migrationConfig: HikariConfig) {
+        val migrationPath = when (getEnvVar("NAIS_CLUSTER_NAME", "local")) {
+            "local", "test" -> "filesystem:src/main/resources/db/migration"
+            else -> "filesystem:/app/db/migration"
+        }
         Flyway.configure()
             .dataSource(migrationConfig.jdbcUrl, migrationConfig.username, migrationConfig.password)
-//            .initSql("SET ROLE \"$MESSAGE_STATUS_DB_NAME-admin\"")
+            .locations(migrationPath)
+            .callbackLocations(migrationPath)
             .lockRetryCount(50)
-            .also {
-                if (getEnvVar("NAIS_CLUSTER_NAME", "local") == "local") {
-                    it.locations("filesystem:src/main/resources/db/migration")
-                }
-                // When running in IDE, CWD is the project root (not module root)
-                if (getEnvVar("NAIS_CLUSTER_NAME", "local") == "test") {
-                    it.locations("filesystem:src/main/resources/db/migration")
-                }
-            }
             .load()
-            .apply {
-                migrate()
-            }
+            .migrate()
     }
 }

@@ -1,7 +1,7 @@
 plugins {
-    kotlin("jvm") version "2.1.10"
-    id("io.ktor.plugin") version "3.3.1"
-    kotlin("plugin.serialization") version "2.1.10"
+    kotlin("jvm") version "2.3.21"
+    id("io.ktor.plugin") version "3.4.3"
+    kotlin("plugin.serialization") version "2.3.21"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
 }
 
@@ -32,7 +32,8 @@ tasks {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
     compilerOptions {
-        freeCompilerArgs = listOf("-opt-in=kotlin.uuid.ExperimentalUuidApi,com.sksamuel.hoplite.ExperimentalHoplite,io.ktor.utils.io.InternalAPI")
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
+        optIn.add("com.sksamuel.hoplite.ExperimentalHoplite")
     }
 }
 
@@ -42,6 +43,22 @@ kotlin {
 
 repositories {
     mavenCentral()
+    exclusiveContent {
+        // emottak-payload-xsd depends on org.apache.cxf:cxf-rt-ws-security:4.1.4 which depends on opensaml-saml-impl:5.1.6
+        // This is not available in maven central
+        forRepository {
+            maven {
+                name = "Shibboleth"
+                url = uri("https://build.shibboleth.net/maven/releases/")
+            }
+        }
+        filter {
+            // Only allow specific group/artifact from Shibboleth
+            includeGroup("org.opensaml")
+            includeGroup("net.shibboleth")
+            // Add more includeGroup or includeModule as needed
+        }
+    }
     maven {
         name = "Emottak Utils"
         url = uri("https://maven.pkg.github.com/navikt/emottak-utils")
@@ -65,10 +82,11 @@ dependencies {
     implementation(libs.micrometer.registry.prometheus)
     implementation(libs.hikari)
     implementation(libs.flyway.core)
-    implementation(libs.vault.jdbc)
+    implementation(libs.flyway.database.postgresql)
+    implementation(libs.postgresql)
     implementation(libs.kotlin.kafka)
     implementation(libs.token.validation.ktor.v3)
-    implementation("com.ibm.mq:com.ibm.mq.allclient:9.4.0.0")
+    implementation(libs.ibm.mq)
 
     testImplementation(kotlin("test"))
     testImplementation(testLibs.mockk)
