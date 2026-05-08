@@ -4,6 +4,7 @@ import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import java.time.Instant
 
 data class MessageStatus(
+    val orgNr: String,
     val messageId: String,
     val processedAt: Instant,
     val latestStatus: MessageStatusEnum,

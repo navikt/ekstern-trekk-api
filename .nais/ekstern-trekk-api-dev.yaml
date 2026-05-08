@@ -62,6 +62,12 @@ spec:
     - configmap: ekstern-trekk-api-config
   kafka:
     pool: nav-dev
+  accessPolicy:
+    outbound:
+      external:
+        - host: b27apvl222.preprod.local
+          ports:
+            - port: 1413
   gcp:
     sqlInstances:
       - type: POSTGRES_18

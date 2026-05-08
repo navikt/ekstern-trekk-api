@@ -9,6 +9,8 @@ object MessageStatusTable : Table("message_status") {
 
     val messageId: Column<String> = varchar("message_id", 256)
 
+    val orgNr: Column<String> = varchar("org_nr", 32)
+
     val processedAt: Column<java.time.Instant> = timestamp("processed_at")
         .defaultExpression(org.jetbrains.exposed.sql.javatime.CurrentTimestamp)
 

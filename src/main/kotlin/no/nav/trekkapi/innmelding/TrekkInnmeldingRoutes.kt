@@ -4,13 +4,13 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.request.receiveText
+import io.ktor.server.request.uri
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import io.ktor.server.routing.put
 import no.kith.xmlstds.msghead._2006_05_24.MsgHead
 import no.nav.trekkapi.auth.orgNrFromTokenValidationContext
 import no.nav.trekkapi.fellesformat.unmarshal
@@ -37,25 +37,6 @@ fun Route.innmeldingRoutes(
         call.respond(HttpStatusCode.Accepted)
     }
 
-    // Alternativ 2: PUT hvor ID genereres av kaller
-    put("/v1/innrapportering/{id}") {
-        val id = call.pathParameters["id"]!!
-        log.debug("Innrapportering kalt med id: $id")
-        val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
-
-        if (trekkInnmeldingService.alreadyRegistered(orgnr, id)) {
-            log.info("Trekkopplysningsmelding allerede registrert for orgnr: $orgnr, id: $id")
-            call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
-            call.respond(HttpStatusCode.Accepted)
-            return@put
-        }
-
-        trekkInnmeldingService.register(orgnr, id, call.receiveText())
-        log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, id: $id")
-        call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
-        call.respond(HttpStatusCode.Accepted)
-    }
-
     get("/v1/innrapportering/{id}") {
         val id = call.pathParameters["id"]!!
         log.debug("Hent innrapporteringstatus kalt med id: $id")
@@ -75,25 +56,17 @@ private fun String.validateInnmeldingXML() =
 fun Route.testRoutes(
     trekkInnmeldingService: TrekkInnmeldingService
 ) {
-    // TESTVERSJON av PUT hvor ID genereres av kaller, ingen auth, og body leses fra testfil
-    get("/test/putinnrapportering/{id}") {
-        val id = call.pathParameters["id"]!!
-        log.debug("TEST-Innrapportering kalt med id: $id")
+    // TESTVERSJON av POST hvor ID genereres, ingen auth, og body leses fra testfil
+    get("/test/putinnrapportering") {
+        log.debug("TEST-Innrapportering kalt")
 
         val orgnr = "123456789"
-        // Vil bli lagret i DB med ID "orgnr-id",
-        // og lagt på MQ med ediLoggId (og messageId, convId) = "trekkapi-orgnr-id"
-
-        if (trekkInnmeldingService.alreadyRegistered(orgnr, id)) {
-            log.info("Trekkopplysningsmelding allerede registrert for orgnr: $orgnr, id: $id")
-            call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
-            call.respond(HttpStatusCode.Accepted)
-            return@get
-        }
+        // Vil bli lagret i DB og lagt på MQ
 
         val inputStream: InputStream? = this::class.java.getResourceAsStream("/testbody.xml")
         val body = inputStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
-        trekkInnmeldingService.register(orgnr, id, body)
+
+        val id = trekkInnmeldingService.register(orgnr, body)
         log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, id: $id")
         call.response.header(HttpHeaders.Location, "/test/innrapportering/$id")
         call.respond(HttpStatusCode.Accepted)
