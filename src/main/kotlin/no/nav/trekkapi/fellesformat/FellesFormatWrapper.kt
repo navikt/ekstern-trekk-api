@@ -9,10 +9,9 @@ import javax.xml.datatype.DatatypeFactory
 
 private val fellesFormatFactory = ObjectFactory()
 
-// todo må evt. finne disse via auth/maskinporten. Vet ikke om HER-id og CPA-id er obligatoriske. Test ved å kalle fagsystem
-data class AuthData(val herId: String, val orgnummer: String, val cpaId: String)
+// todo må evt. finne disse via auth/maskinporten. Vet ikke om HER-id er obligatorisk. Test ved å kalle fagsystem
+data class AuthData(val herId: String, val orgnummer: String)
 
-// input er payload + messageId. Vi kan evt generere en convId, eller bruke messageId som convId
 data class InputTrekkopplysning(val conversationId: String, val messageId: String, val payload: String)
 
 fun createEIFellesFormat_Trekkopplysning(inputTrekkopplysning: InputTrekkopplysning, authData: AuthData, timestamp: Instant): EIFellesformat =
@@ -24,6 +23,7 @@ fun createEIFellesFormat_Trekkopplysning(inputTrekkopplysning: InputTrekkopplysn
 const val TREKKOPPLYSNING_SERVICE = "Trekkopplysning"
 const val TREKKOPPLYSNING_INPUT_ROLE = "Fordringshaver"
 const val TREKKOPPLYSNING_INPUT_ACTION = "Innmelding"
+const val TREKKAPI_PARTHER_REF = "EKSTERN_TREKK_API"
 
 internal fun createFellesFormatMottakEnhetBlokk(authData: AuthData, conversationId: String, messageId: String, timestamp: Instant): EIFellesformat.MottakenhetBlokk {
     return fellesFormatFactory.createEIFellesformatMottakenhetBlokk().apply {
@@ -37,7 +37,7 @@ internal fun createFellesFormatMottakEnhetBlokk(authData: AuthData, conversation
         mottattDatotid = timestamp.toXmlGregorianCalendar()
         ediLoggId = messageId
         meldingsType = "xml"
-        partnerReferanse = authData.cpaId
+        partnerReferanse = TREKKAPI_PARTHER_REF
         avsenderRef = ""
     }
 }

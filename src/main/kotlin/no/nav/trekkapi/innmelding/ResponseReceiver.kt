@@ -39,19 +39,19 @@ suspend fun startResponseReceiver(
         .map { record ->
             log.debug("Processing record: {}", record)
             val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponse_FellesFormat(record.value())
-            val dbId = trekkInnmeldingModel.getDbId(fellesFormat)
+            val orgnrOgMeldingsId = trekkInnmeldingModel.orgnrOgMeldingsId(fellesFormat)
             val akseptert = trekkInnmeldingModel.akseptert(fellesFormat)
             if (akseptert) {
-                trekkInnmeldingRepository.registerResponse(dbId, true, null)
-                log.info("Response på trekkopplysningsmelding med id $dbId er lagret, status: akseptert")
+                trekkInnmeldingRepository.registerResponse(orgnrOgMeldingsId.first, orgnrOgMeldingsId.second, true, null)
+                log.info("Response på trekkopplysningsmelding med orgnr ${orgnrOgMeldingsId.first}, meldingsId ${orgnrOgMeldingsId.second} er lagret, status: akseptert")
             } else {
                 val avvist = trekkInnmeldingModel.avvist(fellesFormat)
                 if (avvist) {
                     val beskrivelse = trekkInnmeldingModel.hentAvvisningsBeskrivelse(fellesFormat)
-                    trekkInnmeldingRepository.registerResponse(dbId, false, beskrivelse)
-                    log.info("Response på trekkopplysningsmelding med id $dbId er lagret, status: avvist, beskrivelse: $beskrivelse")
+                    trekkInnmeldingRepository.registerResponse(orgnrOgMeldingsId.first, orgnrOgMeldingsId.second, false, beskrivelse)
+                    log.info("Response på trekkopplysningsmelding med orgnr ${orgnrOgMeldingsId.first}, meldingsId ${orgnrOgMeldingsId.second} er lagret, status: avvist, beskrivelse: $beskrivelse")
                 } else {
-                    log.error("Ukjent status for trekkopplysningsmelding med id: $dbId")
+                    log.error("Ukjent status for trekkopplysningsmelding med orgnr ${orgnrOgMeldingsId.first}, meldingsId ${orgnrOgMeldingsId.second}")
                 }
             }
             record.offset.acknowledge()
