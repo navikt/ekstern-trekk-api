@@ -1,6 +1,7 @@
 package no.nav.trekkapi.plugin
 
 import io.ktor.server.application.Application
+import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -18,6 +19,7 @@ fun Application.configureRoutes(
         get("/") {
             call.respondText("Ekstern-trekk-api running properly")
         }
+        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
 //        authenticate(MASKINPORTEN_AUTH_INMMELDING) { HANGS forever ?
         innmeldingRoutes(trekkInnmeldingService)
 //        }

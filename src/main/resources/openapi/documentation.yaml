@@ -1,0 +1,183 @@
+openapi: "3.1.0"
+info:
+  title: Ekstern Trekk API
+  description: API for samhandlere til å innrapportere trekkopplysninger til NAV.
+  version: "1.0"
+servers:
+  - url: /
+paths:
+  /v1/innrapportering:
+    post:
+      summary: Innrapporter trekkopplysninger (tjeneste-generert ID)
+      description: >
+        Mottar en XML-melding med trekkopplysninger og sender den til behandling.
+        Tjenesten genererer en unik ID for meldingen og returnerer den i `Location`-headeren.
+      operationId: postInnrapportering
+      security:
+        - maskinporten: []
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              type: string
+              description: Trekkopplysning-melding i XML-format
+      responses:
+        "200":
+          description: Meldingen er mottatt og sendt til behandling
+          headers:
+            Location:
+              description: Relativ URL til statusressursen for den innsendte meldingen
+              schema:
+                type: string
+                example: /v1/innrapportering/abc123
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Accepted
+        "401":
+          description: Manglende eller ugyldig autorisasjon
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Autorisasjonsfeil
+        "500":
+          description: Uventet feil
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Unexpected error
+
+  /v1/innrapportering/{id}:
+    put:
+      summary: Innrapporter trekkopplysninger (kaller-generert ID)
+      description: >
+        Mottar en XML-melding med trekkopplysninger og sender den til behandling med en
+        ID valgt av kalleren. Idempotent: hvis meldingen allerede er registrert returneres
+        samme svar uten ny behandling.
+      operationId: putInnrapportering
+      security:
+        - maskinporten: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Kaller-generert unik ID for meldingen
+          schema:
+            type: string
+            example: min-unike-id-123
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              type: string
+              description: Trekkopplysning-melding i XML-format
+      responses:
+        "200":
+          description: Meldingen er mottatt og sendt til behandling (eller var allerede registrert)
+          headers:
+            Location:
+              description: Relativ URL til statusressursen for den innsendte meldingen
+              schema:
+                type: string
+                example: /v1/innrapportering/min-unike-id-123
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Accepted
+        "401":
+          description: Manglende eller ugyldig autorisasjon
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Autorisasjonsfeil
+        "500":
+          description: Uventet feil
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Unexpected error
+
+    get:
+      summary: Hent status for en innrapportering
+      description: Returnerer nåværende behandlingsstatus for en innsendt melding.
+      operationId: getInnrapporteringStatus
+      security:
+        - maskinporten: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID for meldingen (generert av tjenesten eller av kaller)
+          schema:
+            type: string
+            example: min-unike-id-123
+      responses:
+        "200":
+          description: Status for meldingen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageStatus"
+        "401":
+          description: Manglende eller ugyldig autorisasjon
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Autorisasjonsfeil
+        "404":
+          description: Ingen melding funnet med oppgitt ID
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Not found
+
+components:
+  securitySchemes:
+    maskinporten:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Maskinporten JWT-token med nødvendig scope
+
+  schemas:
+    MessageStatus:
+      type: object
+      properties:
+        messageId:
+          type: string
+          description: Intern ID for meldingen (orgnr-id)
+          example: "123456789-min-unike-id-123"
+        processedAt:
+          type: string
+          format: date-time
+          description: Tidspunkt da meldingen ble mottatt
+        latestStatus:
+          type: string
+          enum:
+            - BEING_PROCESSED
+            - ACCEPTED
+            - REJECTED
+          description: >
+            Nåværende status:
+            BEING_PROCESSED = Melding mottatt og sendt til behandling,
+            ACCEPTED = Melding ferdig behandlet,
+            REJECTED = Melding behandlet, ikke akseptert
+        responseReceivedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Tidspunkt da svar ble mottatt fra behandlingssystemet
+        responseDescription:
+          type: string
+          nullable: true
+          description: Beskrivelse fra behandlingssystemet (fylles ved avvisning)
