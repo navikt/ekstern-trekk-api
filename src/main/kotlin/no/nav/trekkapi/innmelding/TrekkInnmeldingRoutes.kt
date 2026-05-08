@@ -11,9 +11,12 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
+import no.kith.xmlstds.msghead._2006_05_24.MsgHead
 import no.nav.trekkapi.auth.orgNrFromTokenValidationContext
+import no.nav.trekkapi.fellesformat.unmarshal
 import no.nav.trekkapi.log
 import no.nav.trekkapi.plugin.UnauthorizedException
+import no.nav.trekkapi.plugin.ValidationException
 import java.io.InputStream
 import kotlin.use
 
@@ -26,7 +29,9 @@ fun Route.innmeldingRoutes(
         log.debug("Innrapportering kalt")
         val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
 
-        val id = trekkInnmeldingService.register(orgnr, call.receiveText())
+        val innmeldingXml = call.receiveText()
+        innmeldingXml.validateInnmeldingXML()
+        val id = trekkInnmeldingService.register(orgnr, innmeldingXml)
         log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
         call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
         call.respond(HttpStatusCode.Accepted)
@@ -62,6 +67,10 @@ fun Route.innmeldingRoutes(
         call.respond(HttpStatusCode.OK, status)
     }
 }
+
+private fun String.validateInnmeldingXML() =
+    runCatching { unmarshal(this, MsgHead::class.java) }
+        .onFailure { throw ValidationException("Ugyldig XML-format", it) }
 
 fun Route.testRoutes(
     trekkInnmeldingService: TrekkInnmeldingService

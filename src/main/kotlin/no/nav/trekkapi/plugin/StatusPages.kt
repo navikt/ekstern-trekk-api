@@ -12,11 +12,23 @@ import no.nav.trekkapi.log
 
 class UnauthorizedException(message: String = "Autorisasjonsfeil") : Exception(message)
 
+class ForbiddenException(message: String = "Ingen tilgang") : Exception(message)
+
+class ValidationException(message: String, throwable: Throwable) : Exception(message, throwable)
+
 fun Application.configureStatusPages() {
     install(StatusPages) {
         exception<UnauthorizedException> { call, cause ->
             log.error("Unauthorized: ${cause.message}")
             call.respond(HttpStatusCode.Unauthorized, ErrorResponse("UNAUTHORIZED", cause.message ?: "Autorisasjonsfeil"))
+        }
+        exception<ForbiddenException> { call, cause ->
+            log.error("Forbidden: ${cause.message}")
+            call.respond(HttpStatusCode.Forbidden, ErrorResponse("FORBIDDEN", cause.message ?: "Ingen tilgang"))
+        }
+        exception<ValidationException> { call, cause ->
+            log.error("Validation error: ${cause.message}")
+            call.respond(HttpStatusCode.UnprocessableEntity, ErrorResponse("UNPROCESSABLE_ENTITY", cause.message ?: "Validation error"))
         }
         exception<BadRequestException> { call, cause ->
             log.error("Bad request: ${cause.message}")
