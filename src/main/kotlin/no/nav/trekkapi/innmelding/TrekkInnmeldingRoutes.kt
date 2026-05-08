@@ -1,8 +1,8 @@
 package no.nav.trekkapi.innmelding
 
-import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.request.receiveText
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
@@ -13,6 +13,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import no.nav.trekkapi.auth.orgNrFromTokenValidationContext
 import no.nav.trekkapi.log
+import no.nav.trekkapi.plugin.UnauthorizedException
 import java.io.InputStream
 import kotlin.use
 
@@ -21,101 +22,44 @@ import kotlin.use
 fun Route.innmeldingRoutes(
     trekkInnmeldingService: TrekkInnmeldingService
 ) {
-    // Alternativ 1: POST hvor ID genereres av tjenesten
     post("/v1/innrapportering") {
         log.debug("Innrapportering kalt")
+        val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
 
-        val orgnr = orgNrFromTokenValidationContext()
-        if (orgnr == null) {
-            log.error("Tjeneste kalt uten auth med orgnr")
-            call.respondText(
-                "Autorisasjonsfeil",
-                contentType = ContentType.Text.Plain,
-                status = HttpStatusCode.Unauthorized
-            )
-            return@post
-        }
-
-        val body = call.receiveText()
-        try {
-            val id = trekkInnmeldingService.register(orgnr, body)
-            log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
-            call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
-            call.respondText("Accepted", contentType = ContentType.Text.Plain, status = HttpStatusCode.OK)
-        } catch (e: Exception) {
-            // Dette vil dekke timeout fra backend, og alle feilsituasjoner
-            log.error("Feil ved videresending av trekkopplysningsmelding for orgnr: $orgnr", e)
-            call.respondText(
-                "Unexpected error",
-                contentType = ContentType.Text.Plain,
-                status = HttpStatusCode.InternalServerError
-            )
-        }
+        val id = trekkInnmeldingService.register(orgnr, call.receiveText())
+        log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
+        call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
+        call.respond(HttpStatusCode.Accepted)
     }
 
     // Alternativ 2: PUT hvor ID genereres av kaller
     put("/v1/innrapportering/{id}") {
         val id = call.pathParameters["id"]!!
         log.debug("Innrapportering kalt med id: $id")
-
-        val orgnr = orgNrFromTokenValidationContext()
-        if (orgnr == null) {
-            log.error("Tjeneste kalt uten auth med orgnr")
-            call.respondText(
-                "Autorisasjonsfeil",
-                contentType = ContentType.Text.Plain,
-                status = HttpStatusCode.Unauthorized
-            )
-            return@put
-        }
+        val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
 
         if (trekkInnmeldingService.alreadyRegistered(orgnr, id)) {
             log.info("Trekkopplysningsmelding allerede registrert for orgnr: $orgnr, id: $id")
             call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
-            call.respondText("Accepted", contentType = ContentType.Text.Plain, status = HttpStatusCode.OK)
+            call.respond(HttpStatusCode.Accepted)
             return@put
         }
 
-        val body = call.receiveText()
-        try {
-            trekkInnmeldingService.register(orgnr, id, body)
-            log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, id: $id")
-            call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
-            call.respondText("Accepted", contentType = ContentType.Text.Plain, status = HttpStatusCode.OK)
-        } catch (e: Exception) {
-            // Dette vil dekke timeout fra backend, og alle feilsituasjoner
-            log.error("Feil ved videresending av trekkopplysningsmelding for orgnr: $orgnr, id: $id", e)
-            call.respondText(
-                "Unexpected error",
-                contentType = ContentType.Text.Plain,
-                status = HttpStatusCode.InternalServerError
-            )
-        }
+        trekkInnmeldingService.register(orgnr, id, call.receiveText())
+        log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, id: $id")
+        call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
+        call.respond(HttpStatusCode.Accepted)
     }
 
     get("/v1/innrapportering/{id}") {
         val id = call.pathParameters["id"]!!
         log.debug("Hent innrapporteringstatus kalt med id: $id")
-
-        val orgnr = orgNrFromTokenValidationContext()
-        if (orgnr == null) {
-            log.error("Tjeneste kalt uten auth med orgnr")
-            call.respondText(
-                "Autorisasjonsfeil",
-                contentType = ContentType.Text.Plain,
-                status = HttpStatusCode.Unauthorized
-            )
-            return@get
-        }
+        val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
 
         val status = trekkInnmeldingService.getStatus(orgnr, id)
-        if (status != null) {
-            log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
-            call.respond(status = HttpStatusCode.OK, status)
-        } else {
-            log.warn("Finnes ingen status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
-            call.respondText("Not found", contentType = ContentType.Text.Plain, status = HttpStatusCode.NotFound)
-        }
+            ?: throw NotFoundException("Finnes ingen status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
+        log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
+        call.respond(HttpStatusCode.OK, status)
     }
 }
 
@@ -134,22 +78,16 @@ fun Route.testRoutes(
         if (trekkInnmeldingService.alreadyRegistered(orgnr, id)) {
             log.info("Trekkopplysningsmelding allerede registrert for orgnr: $orgnr, id: $id")
             call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
-            call.respondText("Accepted", contentType = ContentType.Text.Plain, status = HttpStatusCode.OK)
+            call.respond(HttpStatusCode.Accepted)
             return@get
         }
 
         val inputStream: InputStream? = this::class.java.getResourceAsStream("/testbody.xml")
         val body = inputStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
-        try {
-            trekkInnmeldingService.register(orgnr, id, body)
-            log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, id: $id")
-            call.response.header(HttpHeaders.Location, "/test/innrapportering/$id")
-            call.respondText("Accepted", contentType = ContentType.Text.Plain, status = HttpStatusCode.OK)
-        } catch (e: Exception) {
-            // Dette vil dekke timeout fra backend, og alle feilsituasjoner
-            log.error("Feil ved videresending av trekkopplysningsmelding for orgnr: $orgnr, id: $id", e)
-            call.respondText("Unexpected error", contentType = ContentType.Text.Plain, status = HttpStatusCode.InternalServerError)
-        }
+        trekkInnmeldingService.register(orgnr, id, body)
+        log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, id: $id")
+        call.response.header(HttpHeaders.Location, "/test/innrapportering/$id")
+        call.respond(HttpStatusCode.Accepted)
     }
 
     get("/test/innrapportering/{id}") {
@@ -160,22 +98,17 @@ fun Route.testRoutes(
         val status = trekkInnmeldingService.getStatus(orgnr, id)
         if (status != null) {
             log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
-            call.respond(status = HttpStatusCode.OK, status)
+            call.respond(HttpStatusCode.OK, status)
         } else {
             log.warn("Finnes ingen status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
-            call.respondText("Not found", contentType = ContentType.Text.Plain, status = HttpStatusCode.NotFound)
+            call.respond(HttpStatusCode.NotFound)
         }
     }
 
     get("/testMq") {
         log.info("Testing MQ......")
-        try {
-            trekkInnmeldingService.verifyConnection()
-            log.info("MQ connection OK")
-            call.respond("MQ connection OK")
-        } catch (e: Exception) {
-            log.error("Error testing MQ", e)
-            call.respond(e.localizedMessage ?: e.javaClass.simpleName)
-        }
+        trekkInnmeldingService.verifyConnection()
+        log.info("MQ connection OK")
+        call.respondText("MQ connection OK")
     }
 }

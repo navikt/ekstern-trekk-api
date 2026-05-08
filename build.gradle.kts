@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.emottak.payload.xsd) // brukes for å få Fellesformat. Kan evt erstattes med lib utenfor emottak
     implementation(libs.bundles.ktor)
     implementation(libs.server.swagger)
+    implementation(libs.server.status.pages)
     implementation(libs.bundles.arrow)
     implementation(libs.bundles.exposed)
     implementation(libs.bundles.hoplite)

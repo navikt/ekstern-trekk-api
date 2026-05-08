@@ -23,7 +23,7 @@ paths:
               type: string
               description: Trekkopplysning-melding i XML-format
       responses:
-        "200":
+        "202":
           description: Meldingen er mottatt og sendt til behandling
           headers:
             Location:
@@ -31,80 +31,20 @@ paths:
               schema:
                 type: string
                 example: /v1/innrapportering/abc123
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Accepted
         "401":
           description: Manglende eller ugyldig autorisasjon
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: Autorisasjonsfeil
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Uventet feil
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: Unexpected error
+                $ref: "#/components/schemas/ErrorResponse"
 
   /v1/innrapportering/{id}:
-    put:
-      summary: Innrapporter trekkopplysninger (kaller-generert ID)
-      description: >
-        Mottar en XML-melding med trekkopplysninger og sender den til behandling med en
-        ID valgt av kalleren. Idempotent: hvis meldingen allerede er registrert returneres
-        samme svar uten ny behandling.
-      operationId: putInnrapportering
-      security:
-        - maskinporten: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Kaller-generert unik ID for meldingen
-          schema:
-            type: string
-            example: min-unike-id-123
-      requestBody:
-        required: true
-        content:
-          application/xml:
-            schema:
-              type: string
-              description: Trekkopplysning-melding i XML-format
-      responses:
-        "200":
-          description: Meldingen er mottatt og sendt til behandling (eller var allerede registrert)
-          headers:
-            Location:
-              description: Relativ URL til statusressursen for den innsendte meldingen
-              schema:
-                type: string
-                example: /v1/innrapportering/min-unike-id-123
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Accepted
-        "401":
-          description: Manglende eller ugyldig autorisasjon
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Autorisasjonsfeil
-        "500":
-          description: Uventet feil
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Unexpected error
-
     get:
       summary: Hent status for en innrapportering
       description: Returnerer nåværende behandlingsstatus for en innsendt melding.
@@ -129,17 +69,15 @@ paths:
         "401":
           description: Manglende eller ugyldig autorisasjon
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: Autorisasjonsfeil
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Ingen melding funnet med oppgitt ID
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: Not found
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   securitySchemes:
@@ -150,6 +88,21 @@ components:
       description: Maskinporten JWT-token med nødvendig scope
 
   schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Maskinlesbar feilkode
+          example: UNAUTHORIZED
+        message:
+          type: string
+          description: Beskrivelse av feilen
+          example: Autorisasjonsfeil
+
     MessageStatus:
       type: object
       properties:
