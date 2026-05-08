@@ -18,14 +18,15 @@ APIet skal aksesseres via Maskinporten, og er tenkt brukt slik:
 <br>For et ikke akseptert dokument vil "description" inneholde begrunnelsen.
 
 Kjøre lokalt:
-- start RunLocalContainers i IDEen.
-- verifisere innhold i DB eller på topics: kjør LocalTestClient i IDEen, med passende innhold.
-- sende inn trekkopplysning (steg 1 over): GET /test/putinnrapportering/{id}. 
-Dette fører til at dokumentet i testbody.xml sendes inn.
-- hente status (steg 2 over): GET /test/innrapportering/{id}
-- simulere mottatt respons fra fagsystem: kjør LocalTestClient i IDEen, med passende innhold.
-- LocalApp kan killes, RunLocalContainers bør stoppes ved kommando "stop"
+- start `RunLocalContainers` i IDEen.
+- start `LocalApp` i IDEen.
+- verifisere innhold i DB eller på topics: kjør `LocalTestClient` i IDEen, med passende innhold.
+- sende inn trekkopplysning (steg 1 over): `GET localhost:8080/test/putinnrapportering/{id}`. 
+Dette fører til at dokumentet i `testbody.xml` sendes inn.
+- hente status (steg 2 over): `GET localhost:8080/test/innrapportering/{id}`
+- simulere mottatt respons fra fagsystem: kjør `LocalTestClient` i IDEen, med passende innhold.
+- LocalApp kan killes, RunLocalContainers bør stoppes med kommando "stop"
 
 Test-endepunktene kan også brukes mot en kjørende applikasjon i DEV.
 Der kan man også verifisere at tilkobling til IBM MQ fungerer ved 
-<br> GET /testMq
+<br> `GET /testMq`
