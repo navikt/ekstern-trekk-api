@@ -1,0 +1,98 @@
+plugins {
+    kotlin("jvm") version "2.3.21"
+    id("io.ktor.plugin") version "3.4.3"
+    kotlin("plugin.serialization") version "2.3.21"
+    id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
+}
+
+group = "no.nav.emottak"
+version = "0.0.1"
+
+application {
+    mainClass = "no.nav.trekkapi.AppKt"
+}
+
+tasks {
+    shadowJar {
+        archiveFileName.set("app.jar")
+    }
+    ktlintFormat {
+        this.enabled = true
+    }
+    ktlintCheck {
+        dependsOn("ktlintFormat")
+    }
+    build {
+        dependsOn("ktlintCheck")
+    }
+    test {
+        useJUnitPlatform()
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
+    compilerOptions {
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
+        optIn.add("com.sksamuel.hoplite.ExperimentalHoplite")
+    }
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+repositories {
+    mavenCentral()
+    exclusiveContent {
+        // emottak-payload-xsd depends on org.apache.cxf:cxf-rt-ws-security:4.1.4 which depends on opensaml-saml-impl:5.1.6
+        // This is not available in maven central
+        forRepository {
+            maven {
+                name = "Shibboleth"
+                url = uri("https://build.shibboleth.net/maven/releases/")
+            }
+        }
+        filter {
+            // Only allow specific group/artifact from Shibboleth
+            includeGroup("org.opensaml")
+            includeGroup("net.shibboleth")
+            // Add more includeGroup or includeModule as needed
+        }
+    }
+    maven {
+        name = "Emottak Utils"
+        url = uri("https://maven.pkg.github.com/navikt/emottak-utils")
+        credentials {
+            username = "token"
+            password = System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation(libs.logback)
+    implementation(libs.logstash)
+    implementation(libs.emottak.utils) // utils for env og config, kan erstattes med eget/lokalt
+    implementation(libs.emottak.payload.xsd) // brukes for å få Fellesformat. Kan evt erstattes med lib utenfor emottak
+    implementation(libs.bundles.ktor)
+    implementation(libs.bundles.arrow)
+    implementation(libs.bundles.exposed)
+    implementation(libs.bundles.hoplite)
+    implementation(libs.bundles.suspendapp)
+    implementation(libs.micrometer.registry.prometheus)
+    implementation(libs.hikari)
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.database.postgresql)
+    implementation(libs.postgresql)
+    implementation(libs.kotlin.kafka)
+    implementation(libs.token.validation.ktor.v3)
+    implementation(libs.ibm.mq)
+
+    testImplementation(kotlin("test"))
+    testImplementation(testLibs.mockk)
+    testImplementation(testLibs.bundles.kotest)
+    testImplementation(testLibs.ktor.server.test)
+    testImplementation(testLibs.testcontainers.postgresql)
+    testImplementation(testLibs.testcontainers.kafka)
+    testImplementation(testLibs.mock.oauth2.server)
+}
