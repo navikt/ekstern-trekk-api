@@ -37,6 +37,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Ugyldig XML-format i forespørselen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Uventet feil
           content:
@@ -65,7 +71,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MessageStatus"
+                $ref: "#/components/schemas/InnrapporteringStatus"
         "401":
           description: Manglende eller ugyldig autorisasjon
           content:
@@ -103,34 +109,21 @@ components:
           description: Beskrivelse av feilen
           example: Autorisasjonsfeil
 
-    MessageStatus:
+    InnrapporteringStatus:
       type: object
+      required:
+        - status
       properties:
-        messageId:
+        status:
           type: string
-          description: Intern ID for meldingen (orgnr-id)
-          example: "123456789-min-unike-id-123"
-        processedAt:
-          type: string
-          format: date-time
-          description: Tidspunkt da meldingen ble mottatt
-        latestStatus:
-          type: string
-          enum:
-            - BEING_PROCESSED
-            - ACCEPTED
-            - REJECTED
           description: >
             Nåværende status:
-            BEING_PROCESSED = Melding mottatt og sendt til behandling,
-            ACCEPTED = Melding ferdig behandlet,
-            REJECTED = Melding behandlet, ikke akseptert
-        responseReceivedAt:
-          type: string
-          format: date-time
-          nullable: true
-          description: Tidspunkt da svar ble mottatt fra behandlingssystemet
-        responseDescription:
+            Melding mottatt og sendt til behandling,
+            Melding ferdig behandlet,
+            Melding behandlet, ikke akseptert
+          example: Melding mottatt og sendt til behandling
+        description:
           type: string
           nullable: true
-          description: Beskrivelse fra behandlingssystemet (fylles ved avvisning)
+          description: Tilleggsinformasjon om statusen (f.eks. tidspunkt eller avslagsbeskrivelse)
+          example: Sendt inn 2026-05-08T12:00:00Z
