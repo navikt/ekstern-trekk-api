@@ -17,8 +17,8 @@ import no.nav.trekkapi.log
 import no.nav.trekkapi.plugin.UnauthorizedException
 import no.nav.trekkapi.plugin.ValidationException
 import java.io.InputStream
-import java.util.UUID
 import kotlin.use
+import kotlin.uuid.Uuid
 
 // todo lag test for denne, hvis vi får til maskinporten mock
 
@@ -31,7 +31,7 @@ fun Route.innmeldingRoutes(
 
         val idempotencyKeyValue = call.request.headers["Idempotency-Key"]
             ?: throw ValidationException("Idempotency-Key header er påkrevd", IllegalArgumentException("Missing Idempotency-Key header"))
-        runCatching { UUID.fromString(idempotencyKeyValue) }
+        runCatching { Uuid.parse(idempotencyKeyValue) }
             .onFailure { throw ValidationException("Idempotency-Key må være en gyldig UUID (RFC 4122)", it) }
 
         val innmeldingXml = call.receiveText()
@@ -71,7 +71,7 @@ fun Route.testRoutes(
         val inputStream: InputStream? = this::class.java.getResourceAsStream("/testbody.xml")
         val body = inputStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
 
-        val id = trekkInnmeldingService.register(orgnr, java.util.UUID.randomUUID().toString(), body)
+        val id = trekkInnmeldingService.register(orgnr, Uuid.random().toString(), body)
         log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, id: $id")
         call.response.header(HttpHeaders.Location, "/test/innrapportering/$id")
         call.respond(HttpStatusCode.Accepted)
