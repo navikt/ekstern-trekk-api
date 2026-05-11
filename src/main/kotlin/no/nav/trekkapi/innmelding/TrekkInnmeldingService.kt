@@ -31,7 +31,8 @@ class TrekkInnmeldingService(
     val innrapporteringRepository: TrekkInnmeldingRepository,
     val trekkInnmeldingModel: TrekkInnmeldingModel = TrekkInnmeldingModel(),
     val jmSclient: JmsClient = JmsClient(trekkopplysningMq),
-    val queue: String = trekkopplysningMq.queue
+    val queue: String = trekkopplysningMq.queue,
+    val useMq: Boolean = getEnvVar("USE_MQ", "false").toBoolean()
 ) {
     suspend fun alreadyRegistered(orgnr: String, id: String): Boolean {
         return innrapporteringRepository.findNewestStatus(orgnr, id) != null
@@ -51,12 +52,11 @@ class TrekkInnmeldingService(
         val fellesFormat = trekkInnmeldingModel.buildTrekkInnmelding_FellesFormat(orgnr, id, body)
         val messageBody = marshalTrekkopplysning(fellesFormat)
 
-        val doSend = getEnvVar("USE_MQ", "false").toBoolean()
-        if (doSend) {
-            log.debug("Sending in trekkopplysning with body: " + messageBody)
+        if (useMq) {
+            log.debug("Sending in trekkopplysning with body: $messageBody")
             jmSclient.sendMessage(queue, messageBody)
         } else {
-            log.debug("MQ turned OFF, would send in trekkopplysning with body: " + messageBody)
+            log.debug("MQ turned OFF, would send in trekkopplysning with body: $messageBody")
         }
 
         innrapporteringRepository.register(orgnr, id)

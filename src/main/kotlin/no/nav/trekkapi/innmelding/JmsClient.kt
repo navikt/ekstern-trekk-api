@@ -11,7 +11,7 @@ class JmsClient(
     config: TrekkopplysningMq,
     val factory: MQQueueConnectionFactory = MQQueueConnectionFactory(),
     val username: String = config.username,
-    val password: String = config.password
+    val password: String = config.password.value
 ) {
 
     /*
