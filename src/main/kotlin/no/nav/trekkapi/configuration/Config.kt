@@ -2,16 +2,17 @@ package no.nav.trekkapi.configuration
 
 import no.nav.emottak.utils.config.Kafka
 import no.nav.emottak.utils.config.Server
-import no.nav.emottak.utils.config.toProperties
 import no.nav.trekkapi.util.getEnvVar
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
 import org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG
+import org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_RECORDS_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_KEYSTORE_TYPE_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG
+import java.util.Properties
 
 data class Config(
     val environment: Environment,
@@ -67,16 +68,17 @@ value class MaxConnectionPoolSizeForAdmin(val value: Int)
 value class DistinctValuesRefreshRateInHours(val value: Long)
 
 fun Kafka.toProperties() =
-    toProperties()
+    Properties()
         .apply {
             put(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
-            if (getEnvVar("NAIS_CLUSTER_NAME", "local") == "local") {
-                remove(SECURITY_PROTOCOL_CONFIG, securityProtocol.value)
-                remove(SSL_KEYSTORE_TYPE_CONFIG, keystoreType.value)
-                remove(SSL_KEYSTORE_LOCATION_CONFIG, keystoreLocation.value)
-                remove(SSL_KEYSTORE_PASSWORD_CONFIG, keystorePassword.value)
-                remove(SSL_TRUSTSTORE_TYPE_CONFIG, truststoreType.value)
-                remove(SSL_TRUSTSTORE_LOCATION_CONFIG, truststoreLocation.value)
-                remove(SSL_TRUSTSTORE_PASSWORD_CONFIG, truststorePassword.value)
+            put(MAX_POLL_RECORDS_CONFIG, maxPollRecords.toString())
+            if (getEnvVar("NAIS_CLUSTER_NAME", "local") != "local") {
+                put(SECURITY_PROTOCOL_CONFIG, securityProtocol.value)
+                put(SSL_KEYSTORE_TYPE_CONFIG, keystoreType.value)
+                put(SSL_KEYSTORE_PASSWORD_CONFIG, keystorePassword.value)
+                put(SSL_KEYSTORE_LOCATION_CONFIG, keystoreLocation.value)
+                put(SSL_TRUSTSTORE_TYPE_CONFIG, truststoreType.value)
+                put(SSL_TRUSTSTORE_LOCATION_CONFIG, truststoreLocation.value)
+                put(SSL_TRUSTSTORE_PASSWORD_CONFIG, truststorePassword.value)
             }
         }
