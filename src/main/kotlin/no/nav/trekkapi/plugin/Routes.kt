@@ -2,6 +2,7 @@ package no.nav.trekkapi.plugin
 
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
+import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -27,5 +28,6 @@ fun Application.configureRoutes(
         if (!isProdEnv()) {
             testRoutes(trekkInnmeldingService)
         }
+        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
     }
 }

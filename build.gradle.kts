@@ -27,6 +27,13 @@ tasks {
     }
     test {
         useJUnitPlatform()
+        testLogging {
+            events("passed", "skipped", "failed")
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
     }
 }
 
@@ -75,6 +82,8 @@ dependencies {
     implementation(libs.emottak.utils) // utils for env og config, kan erstattes med eget/lokalt
     implementation(libs.emottak.payload.xsd) // brukes for å få Fellesformat. Kan evt erstattes med lib utenfor emottak
     implementation(libs.bundles.ktor)
+    implementation(libs.server.swagger)
+    implementation(libs.server.status.pages)
     implementation(libs.bundles.arrow)
     implementation(libs.bundles.exposed)
     implementation(libs.bundles.hoplite)
