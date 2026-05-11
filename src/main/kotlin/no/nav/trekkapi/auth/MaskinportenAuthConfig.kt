@@ -2,11 +2,11 @@ package no.nav.trekkapi.auth
 
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.RoutingContext
-import no.nav.emottak.utils.environment.getEnvVar
 import no.nav.security.token.support.v3.IssuerConfig
 import no.nav.security.token.support.v3.RequiredClaims
 import no.nav.security.token.support.v3.TokenSupportConfig
 import no.nav.security.token.support.v3.TokenValidationContextPrincipal
+import no.nav.trekkapi.util.getEnvVar
 
 // Lag en config for hver tjenestetype, hvis det blir flere tjenester (sjekker forskjellig audience for hver)
 const val MASKINPORTEN_AUTH_INMMELDING = "MASKINPORTEN_INNMELDING"

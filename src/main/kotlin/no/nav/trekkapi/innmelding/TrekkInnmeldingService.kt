@@ -1,12 +1,12 @@
 package no.nav.trekkapi.innmelding
 
 import kotlinx.serialization.Serializable
-import no.nav.emottak.utils.environment.getEnvVar
 import no.nav.trekkapi.configuration.TrekkopplysningMq
 import no.nav.trekkapi.fellesformat.marshalTrekkopplysning
 import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
+import no.nav.trekkapi.util.getEnvVar
 import java.time.Instant
 import kotlin.uuid.Uuid
 

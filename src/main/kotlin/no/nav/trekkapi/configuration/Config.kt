@@ -3,7 +3,7 @@ package no.nav.trekkapi.configuration
 import no.nav.emottak.utils.config.Kafka
 import no.nav.emottak.utils.config.Server
 import no.nav.emottak.utils.config.toProperties
-import no.nav.emottak.utils.environment.getEnvVar
+import no.nav.trekkapi.util.getEnvVar
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
 import org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG

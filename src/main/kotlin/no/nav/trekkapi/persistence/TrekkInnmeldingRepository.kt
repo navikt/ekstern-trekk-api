@@ -1,7 +1,6 @@
 package no.nav.trekkapi.persistence
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import no.nav.emottak.utils.common.nowOsloToInstant
 import no.nav.trekkapi.innmelding.InnrapporteringStatus
 import no.nav.trekkapi.innmelding.MessageStatus
 import no.nav.trekkapi.innmelding.akseptert
@@ -15,6 +14,7 @@ import no.nav.trekkapi.persistence.table.MessageStatusTable.orgNr
 import no.nav.trekkapi.persistence.table.MessageStatusTable.processedAt
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseDescription
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseReceivedAt
+import no.nav.trekkapi.util.nowOsloToInstant
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.transactions.transaction
