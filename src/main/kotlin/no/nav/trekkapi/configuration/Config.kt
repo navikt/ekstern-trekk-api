@@ -1,7 +1,6 @@
 package no.nav.trekkapi.configuration
 
-import no.nav.emottak.utils.config.Kafka
-import no.nav.emottak.utils.config.Server
+import com.sksamuel.hoplite.Masked
 import no.nav.trekkapi.util.getEnvVar
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
 import org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG
@@ -13,6 +12,7 @@ import org.apache.kafka.common.config.SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG
 import org.apache.kafka.common.config.SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG
 import java.util.Properties
+import kotlin.time.Duration
 
 data class Config(
     val environment: Environment,
@@ -25,6 +25,11 @@ data class Config(
 
 data class Environment(
     val naisClusterName: NaisClusterName
+)
+
+data class Server(
+    val port: Port,
+    val preWait: Duration
 )
 
 data class Database(
@@ -52,8 +57,39 @@ data class KafkaResponseQueue(
     val initOffset: String
 )
 
+data class Kafka(
+    val bootstrapServers: String,
+    val securityProtocol: SecurityProtocol,
+    val keystoreType: KeystoreType,
+    val keystoreLocation: KeystoreLocation,
+    val keystorePassword: Masked,
+    val truststoreType: TruststoreType,
+    val truststoreLocation: TruststoreLocation,
+    val truststorePassword: Masked,
+    val groupId: String,
+    val maxPollRecords: Int = 50
+)
+
+@JvmInline
+value class SecurityProtocol(val value: String)
+
+@JvmInline
+value class KeystoreType(val value: String)
+
+@JvmInline
+value class KeystoreLocation(val value: String)
+
+@JvmInline
+value class TruststoreType(val value: String)
+
+@JvmInline
+value class TruststoreLocation(val value: String)
+
 @JvmInline
 value class Host(val value: String)
+
+@JvmInline
+value class Port(val value: Int)
 
 @JvmInline
 value class NaisClusterName(val value: String)
