@@ -29,24 +29,26 @@ class TrekkInnmeldingModel {
         return Pair(orgnr, meldingsId)
     }
 
-    fun avvist(fellesFormatRespons: EIFellesformat): Boolean {
+    fun isRejected(fellesFormatRespons: EIFellesformat): Boolean {
         return "Avvisning" == ebAction(fellesFormatRespons)
     }
 
-    fun akseptert(fellesFormatRespons: EIFellesformat): Boolean {
+    fun isAccepted(fellesFormatRespons: EIFellesformat): Boolean {
         return "Kvittering" == ebAction(fellesFormatRespons)
     }
 
-    fun hentAvvisningsBeskrivelse(fellesFormatRespons: EIFellesformat): String {
-        return apiRec_Error(fellesFormatRespons)
+    fun getRejectionDescription(fellesFormatRespons: EIFellesformat): String {
+        return apiRec_Error(fellesFormatRespons).dn ?: ""
+    }
+
+    fun getRejectionCode(fellesFormatRespons: EIFellesformat): String? {
+        return apiRec_Error(fellesFormatRespons).v
     }
 
     fun ebAction(fellesFormatRespons: EIFellesformat): String {
         return fellesFormatRespons.mottakenhetBlokk.ebAction
     }
 
-    fun apiRec_Error(fellesFormatRespons: EIFellesformat): String {
-        val errorElement = fellesFormatRespons.appRec.error
-        return errorElement!!.get(0)!!.dn ?: ""
-    }
+    fun apiRec_Error(fellesFormatRespons: EIFellesformat) =
+        fellesFormatRespons.appRec.error!![0]!!
 }

@@ -1,17 +1,34 @@
 openapi: "3.1.0"
 info:
-  title: Ekstern Trekk API
-  description: API for samhandlere til å innrapportere trekkopplysninger til NAV.
+  title: NAV Trekkopplysning API
+  description: |
+    API for innrapportering av trekkopplysninger til NAV.
+
+    Tilgang krever et gyldig Maskinporten-token med scope `nav:utbetaling/trekkopplysning/innmelding`.
+
+    ## Flyt
+
+    1. Send trekkopplysningsmelding med `POST /v1/innrapportering`.
+    2. Tjenesten returnerer HTTP 202 med en `Location`-header som peker til ressursen.
+    3. Poll `GET /v1/innrapportering/{id}` til meldingen er ferdigbehandlet (`Melding ferdig behandlet` eller `Melding behandlet, ikke akseptert`).
   version: "1.0"
 servers:
-  - url: /
+  - url: https://ekstern-trekk-api.ekstern.nav.no
+    description: Produksjon
+  - url: https://ekstern-trekk-api.ekstern.dev.nav.no
+    description: Test
 paths:
   /v1/innrapportering:
     post:
-      summary: Innrapporter trekkopplysninger (tjeneste-generert ID)
-      description: >
-        Mottar en XML-melding med trekkopplysninger og sender den til behandling.
-        Tjenesten genererer en unik ID for meldingen og returnerer den i `Location`-headeren.
+      summary: Send trekkopplysningsmelding
+      description: |
+        Mottar en trekkopplysningsmelding i XML-format og sender den til behandling.
+        Tjenesten genererer en unik ID og returnerer den i `Location`-headeren.
+
+        XML-meldingen må følge skjemaet `MsgHead-v1_2.xsd`
+        (namespace `http://www.kith.no/xmlstds/msghead/2006-05-24`)
+        med innhold i henhold til `InnrapporteringTrekk-2010-02-04.xsd`
+        (namespace `http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04`).
       operationId: postInnrapportering
       security:
         - maskinporten: []
@@ -21,7 +38,75 @@ paths:
           application/xml:
             schema:
               type: string
-              description: Trekkopplysning-melding i XML-format
+            examples:
+              trekkopplysning:
+                summary: Innrapportering av nytt trekk
+                value: |
+                  <MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24">
+                    <MsgInfo>
+                      <Type V="INNRAPPORTERING_TREKK" DN="Innrapportering av trekk til NAV"/>
+                      <MIGversion>v1.2 2006-05-24</MIGversion>
+                      <GenDate>2026-03-06T15:22:35Z</GenDate>
+                      <MsgId>7f41c4e9-b6bd-44a3-822b-622332b4e421</MsgId>
+                      <Ack V="N" DN="Nei"/>
+                      <Sender>
+                        <Organisation>
+                          <OrganisationName>TEST ORG</OrganisationName>
+                          <Ident>
+                            <Id>000000000</Id>
+                            <TypeId V="ENH" S="2.16.578.1.12.4.1.1.9051" DN="Organisasjonsnummer"/>
+                          </Ident>
+                        </Organisation>
+                      </Sender>
+                      <Receiver>
+                        <Organisation>
+                          <OrganisationName>NAV IKT</OrganisationName>
+                          <Ident>
+                            <Id>79768</Id>
+                            <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
+                          </Ident>
+                        </Organisation>
+                      </Receiver>
+                      <Patient>
+                        <FamilyName>SEILBÅT</FamilyName>
+                        <GivenName>DEMOKRATISK</GivenName>
+                        <Sex V="2" DN="Kvinne"/>
+                        <Ident>
+                          <Id>12345678910</Id>
+                          <TypeId V="FNR" S="2.16.578.1.12.4.1.1.8116" DN="Fødselsnummer"/>
+                        </Ident>
+                      </Patient>
+                    </MsgInfo>
+                    <Document>
+                      <ContentDescription>Innrapportering av trekk til NAV</ContentDescription>
+                      <RefDoc>
+                        <IssueDate V="2026-03-06T15:22:35Z"/>
+                        <MsgType V="XML" DN="XML-instans"/>
+                        <Content>
+                          <InnrapporteringTrekk
+                            xmlns="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                            xsi:schemaLocation="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04 InnrapporteringTrekk-2010-02-04.xsd">
+                            <Aksjonskode DN="Nytt trekk" V="NY"/>
+                            <Identifisering>
+                              <KreditorTrekkId>ee387905-4b77-47c2-9fba-e21847525c3e</KreditorTrekkId>
+                              <DebitorId>
+                                <Id>12345678901</Id>
+                                <TypeId DN="Fødselsnummer" S="2.16.578.1.12.4.1.1.8116" V="FNR"/>
+                              </DebitorId>
+                            </Identifisering>
+                            <Trekk>
+                              <KodeTrekktype DN="Vederlagstrekk" V="VEDE"/>
+                              <KodeTrekkAlternativ DN="Løpende trekk månedssats" V="LOPM"/>
+                              <Sats V="21573"/>
+                            </Trekk>
+                            <Periode><PeriodeFomDato>2026-04-01</PeriodeFomDato></Periode>
+                            <Kreditor><TSSId>tssId</TSSId></Kreditor>
+                          </InnrapporteringTrekk>
+                        </Content>
+                      </RefDoc>
+                    </Document>
+                  </MsgHead>
       responses:
         "202":
           description: Meldingen er mottatt og sendt til behandling
@@ -31,20 +116,26 @@ paths:
               schema:
                 type: string
                 example: /v1/innrapportering/abc123
+        "400":
+          description: Forespørselen mangler påkrevd innhold eller har feil Content-Type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
-          description: Manglende eller ugyldig autorisasjon
+          description: Manglende eller ugyldig Maskinporten-token
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "422":
-          description: Ugyldig XML-format i forespørselen
+          description: XML-innholdet er ikke gyldig i henhold til forventet skjema
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
-          description: Uventet feil
+          description: Uventet feil på tjenersiden
           content:
             application/json:
               schema:
@@ -52,28 +143,30 @@ paths:
 
   /v1/innrapportering/{id}:
     get:
-      summary: Hent status for en innrapportering
-      description: Returnerer nåværende behandlingsstatus for en innsendt melding.
-      operationId: getInnrapporteringStatus
+      summary: Hent behandlingsstatus
+      description: |
+        Returnerer nåværende behandlingsstatus for en innsendt melding.
+        ID-en hentes fra `Location`-headeren returnert av `POST /v1/innrapportering`.
+      operationId: getMessageStatus
       security:
         - maskinporten: []
       parameters:
         - name: id
           in: path
           required: true
-          description: ID for meldingen (generert av tjenesten eller av kaller)
+          description: ID for meldingen, returnert i `Location`-headeren fra POST-kallet
           schema:
             type: string
-            example: min-unike-id-123
+            example: abc123
       responses:
         "200":
-          description: Status for meldingen
+          description: Nåværende behandlingsstatus for meldingen
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/InnrapporteringStatus"
+                $ref: "#/components/schemas/MessageStatus"
         "401":
-          description: Manglende eller ugyldig autorisasjon
+          description: Manglende eller ugyldig Maskinporten-token
           content:
             application/json:
               schema:
@@ -91,39 +184,56 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Maskinporten JWT-token med nødvendig scope
+      description: |
+        Maskinporten JWT-token med scope `nav:utbetaling/trekkopplysning/innmelding`.
+        Se [Maskinporten-dokumentasjonen](https://docs.digdir.no/docs/Maskinporten/) for informasjon om hvordan man anskaffer token.
 
   schemas:
     ErrorResponse:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: string
-          description: Maskinlesbar feilkode
-          example: UNAUTHORIZED
         message:
           type: string
           description: Beskrivelse av feilen
-          example: Autorisasjonsfeil
+          example: Ugyldig XML-format
 
-    InnrapporteringStatus:
+    MessageStatus:
       type: object
       required:
+        - id
         - status
+        - submittedAt
+        - updatedAt
       properties:
+        id:
+          type: string
+          description: Unik identifikator for innmeldingen, tildelt av tjenesten ved POST.
+          example: "abc-123"
         status:
           type: string
-          description: >
-            Nåværende status:
-            Melding mottatt og sendt til behandling,
-            Melding ferdig behandlet,
-            Melding behandlet, ikke akseptert
-          example: Melding mottatt og sendt til behandling
-        description:
+          description: Maskinlesbar behandlingsstatus
+          enum:
+            - PENDING
+            - ACCEPTED
+            - REJECTED
+          example: PENDING
+        submittedAt:
           type: string
-          nullable: true
-          description: Tilleggsinformasjon om statusen (f.eks. tidspunkt eller avslagsbeskrivelse)
-          example: Sendt inn 2026-05-08T12:00:00Z
+          format: date-time
+          description: Tidspunkt da meldingen ble mottatt (ISO-8601). Endres aldri.
+          example: "2026-05-08T12:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Tidspunkt for siste statusendring (ISO-8601). Lik `submittedAt` så lenge status er `PENDING`.
+          example: "2026-05-08T12:05:00Z"
+        rejectionDescription:
+          type: string
+          description: Beskrivelse av årsak til avvisning. Settes kun når status er `REJECTED`.
+          example: Trekkvedtak finnes fra før
+        rejectionCode:
+          type: string
+          description: Maskinlesbar kode for avvisningsårsak. Settes kun når status er `REJECTED`.
+          example: B720007F
