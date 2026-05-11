@@ -21,6 +21,7 @@ import no.nav.trekkapi.persistence.Database
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
 import no.nav.trekkapi.persistence.messageStatusDbConfig
 import no.nav.trekkapi.persistence.messageStatusMigrationConfig
+import no.nav.trekkapi.plugin.configureAuthentication
 import no.nav.trekkapi.plugin.configureContentNegotiation
 import no.nav.trekkapi.plugin.configureMetrics
 import no.nav.trekkapi.plugin.configureRoutes
@@ -94,8 +95,8 @@ fun trekkapiModule(
         log.info("Configured prometheus metrics")
         configureContentNegotiation()
         log.info("Configured content negotiation (JSON)")
-//        configureAuthentication() HANGS forever ??
-//        log.info("Configured authentication")
+        configureAuthentication()
+        log.info("Configured authentication")
         configureRoutes(trekkInnmeldingService, prometheusMeterRegistry)
         log.info("Configured routes")
     }
