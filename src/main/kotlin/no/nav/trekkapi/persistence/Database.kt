@@ -2,7 +2,7 @@ package no.nav.trekkapi.persistence
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.emottak.utils.environment.getEnvVar
+import no.nav.trekkapi.util.getEnvVar
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
 

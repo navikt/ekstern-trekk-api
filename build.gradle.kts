@@ -50,6 +50,14 @@ kotlin {
 
 repositories {
     mavenCentral()
+    maven {
+        name = "GitHub Packages NAV"
+        url = uri("https://maven.pkg.github.com/navikt/emottak-payload-xsd")
+        credentials {
+            username = "token"
+            password = System.getenv("GITHUB_TOKEN")
+        }
+    }
     exclusiveContent {
         // emottak-payload-xsd depends on org.apache.cxf:cxf-rt-ws-security:4.1.4 which depends on opensaml-saml-impl:5.1.6
         // This is not available in maven central
@@ -66,20 +74,11 @@ repositories {
             // Add more includeGroup or includeModule as needed
         }
     }
-    maven {
-        name = "Emottak Utils"
-        url = uri("https://maven.pkg.github.com/navikt/emottak-utils")
-        credentials {
-            username = "token"
-            password = System.getenv("GITHUB_TOKEN")
-        }
-    }
 }
 
 dependencies {
     implementation(libs.logback)
     implementation(libs.logstash)
-    implementation(libs.emottak.utils) // utils for env og config, kan erstattes med eget/lokalt
     implementation(libs.emottak.payload.xsd) // brukes for å få Fellesformat. Kan evt erstattes med lib utenfor emottak
     implementation(libs.bundles.ktor)
     implementation(libs.server.swagger)

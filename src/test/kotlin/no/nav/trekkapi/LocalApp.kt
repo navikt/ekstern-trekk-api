@@ -14,13 +14,13 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
-import no.nav.emottak.utils.coroutines.coroutineScope
 import no.nav.trekkapi.configuration.config
 import no.nav.trekkapi.innmelding.TrekkInnmeldingModel
 import no.nav.trekkapi.innmelding.TrekkInnmeldingService
 import no.nav.trekkapi.innmelding.startResponseReceiver
 import no.nav.trekkapi.persistence.Database
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
+import no.nav.trekkapi.util.coroutineScope
 import org.slf4j.LoggerFactory
 
 val log = LoggerFactory.getLogger("no.nav.emottak.ebms.async.LocalApp")

@@ -12,7 +12,6 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
-import no.nav.emottak.utils.coroutines.coroutineScope
 import no.nav.trekkapi.configuration.config
 import no.nav.trekkapi.innmelding.TrekkInnmeldingModel
 import no.nav.trekkapi.innmelding.TrekkInnmeldingService
@@ -26,6 +25,7 @@ import no.nav.trekkapi.plugin.configureContentNegotiation
 import no.nav.trekkapi.plugin.configureMetrics
 import no.nav.trekkapi.plugin.configureRoutes
 import no.nav.trekkapi.plugin.configureStatusPages
+import no.nav.trekkapi.util.coroutineScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.coroutines.coroutineContext

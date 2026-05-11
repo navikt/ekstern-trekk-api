@@ -3,7 +3,6 @@ exposed = "0.61.0"
 ktor = "3.4.3"
 hoplite = "2.8.2"
 arrow = "2.2.2.1"
-emottak-utils = "0.4.0"
 emottak-xsd = "0.0.12"
 kotlin-kafka = "0.4.1"
 logback = "1.5.32"
@@ -50,7 +49,6 @@ arrow-functions = { module = "io.arrow-kt:arrow-functions", version.ref = "arrow
 arrow-suspendapp = { module = "io.arrow-kt:suspendapp", version.ref = "arrow" }
 arrow-suspendapp-ktor = { module = "io.arrow-kt:suspendapp-ktor", version.ref = "arrow" }
 
-emottak-utils = { module = "no.nav.emottak:emottak-utils", version.ref = "emottak-utils" }
 emottak-payload-xsd = { module = "no.nav.emottak:emottak-payload-xsd", version.ref = "emottak-xsd" }
 
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
