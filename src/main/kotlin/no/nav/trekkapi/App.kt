@@ -96,15 +96,10 @@ fun trekkapiModule(
         log.info("Configured prometheus metrics")
         configureContentNegotiation()
         log.info("Configured content negotiation (JSON)")
-<<<<<<< ny-dbkolonne-orgnr
         configureAuthentication()
         log.info("Configured authentication")
-=======
         configureStatusPages()
         log.info("Configured status pages")
-//        configureAuthentication() HANGS forever ??
-//        log.info("Configured authentication")
->>>>>>> main
         configureRoutes(trekkInnmeldingService, prometheusMeterRegistry)
         log.info("Configured routes")
     }
