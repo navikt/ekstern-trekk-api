@@ -23,25 +23,27 @@ class TrekkInnmeldingService(
         return innrapporteringRepository.findNewestStatus(orgnr, id)
     }
 
-    suspend fun register(orgnr: String, body: String): String {
+    suspend fun register(orgnr: String, idempotencyKeyValue: String, body: String): String {
+        innrapporteringRepository.findByIdempotencyKey(orgnr, idempotencyKeyValue)?.let { return it }
+
         val id: String = Uuid.random().toString()
-        register(orgnr, id, body)
+        register(orgnr, id, idempotencyKeyValue, body)
         return id
     }
 
-    suspend fun register(orgnr: String, id: String, body: String) {
+    suspend fun register(orgnr: String, id: String, idempotencyKeyValue: String, body: String) {
         val fellesFormat = trekkInnmeldingModel.buildTrekkInnmelding_FellesFormat(orgnr, id, body)
         val messageBody = marshalTrekkopplysning(fellesFormat)
 
         val doSend = getEnvVar("USE_MQ", "false").toBoolean()
         if (doSend) {
-            log.debug("Sending in trekkopplysning with body: " + messageBody)
+            log.debug("Sending in trekkopplysning with body: $messageBody")
             jmSclient.sendMessage(queue, messageBody)
         } else {
-            log.debug("MQ turned OFF, would send in trekkopplysning with body: " + messageBody)
+            log.debug("MQ turned OFF, would send in trekkopplysning with body: $messageBody")
         }
 
-        innrapporteringRepository.register(orgnr, id)
+        innrapporteringRepository.register(orgnr, id, idempotencyKeyValue)
         // todo Hvis noe gikk galt eller timeout: exception
     }
 

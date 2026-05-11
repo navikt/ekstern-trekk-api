@@ -41,8 +41,9 @@ class TrekkInnmeldingRepositoryTest {
         val repo = TrekkInnmeldingRepository(db)
         val orgnr = "123451111"
         val id = "theIdOfTheInsertedRecord"
+        val idempotencyKey = "550e8400-e29b-41d4-a716-446655440000"
         newSuspendedTransaction {
-            repo.register(orgnr, id)
+            repo.register(orgnr, id, idempotencyKey)
             val status = repo.findNewestStatus(orgnr, id)
             assertEquals(MessageStatusEnum.PENDING, status!!.status)
             assertEquals(id, status.id)
@@ -60,7 +61,23 @@ class TrekkInnmeldingRepositoryTest {
                 assertEquals("PENDING", rs.getString("latest_status"))
                 assertNull(rs.getTimestamp("response_at"))
                 assertNull(rs.getString("response_description"))
+                assertEquals(idempotencyKey, rs.getString("idempotency_key"))
             }
+            rollback()
+        }
+    }
+
+    @Test
+    fun `Verify findByIdempotencyKey() returns existing message id`() = runBlocking {
+        val repo = TrekkInnmeldingRepository(db)
+        val orgnr = "123451111"
+        val id = "theIdOfTheInsertedRecord"
+        val idempotencyKey = "550e8400-e29b-41d4-a716-446655440001"
+        newSuspendedTransaction {
+            repo.register(orgnr, id, idempotencyKey)
+            assertEquals(id, repo.findByIdempotencyKey(orgnr, idempotencyKey))
+            assertNull(repo.findByIdempotencyKey(orgnr, "00000000-0000-0000-0000-000000000000"))
+            assertNull(repo.findByIdempotencyKey("999999999", idempotencyKey))
             rollback()
         }
     }
@@ -71,7 +88,7 @@ class TrekkInnmeldingRepositoryTest {
         val orgnr = "123456789"
         val id = "theIdOfTheInsertedRecord"
         newSuspendedTransaction {
-            repo.register(orgnr, id)
+            repo.register(orgnr, id, "550e8400-e29b-41d4-a716-446655440002")
             repo.registerResponse("123456789", "theIdOfTheInsertedRecord", true)
             val status = repo.findNewestStatus(orgnr, id)
             assertEquals(MessageStatusEnum.ACCEPTED, status!!.status)
@@ -97,7 +114,7 @@ class TrekkInnmeldingRepositoryTest {
         val orgnr = "123456789"
         val id = "theIdOfTheInsertedRecord"
         newSuspendedTransaction {
-            repo.register(orgnr, id)
+            repo.register(orgnr, id, "550e8400-e29b-41d4-a716-446655440003")
             repo.registerResponse("123456789", "theIdOfTheInsertedRecord", false, "Avvist av test", "TEST_CODE")
             val status = repo.findNewestStatus(orgnr, id)
             assertEquals(MessageStatusEnum.REJECTED, status!!.status)

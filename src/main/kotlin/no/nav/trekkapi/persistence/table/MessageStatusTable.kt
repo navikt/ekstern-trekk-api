@@ -22,6 +22,8 @@ object MessageStatusTable : Table("message_status") {
 
     val responseCode: Column<String?> = varchar("response_code", 64).nullable()
 
+    val idempotencyKey: Column<String> = varchar("idempotency_key", 36)
+
     override val primaryKey = PrimaryKey(messageId)
 }
 

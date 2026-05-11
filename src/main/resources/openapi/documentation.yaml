@@ -32,6 +32,18 @@ paths:
       operationId: postInnrapportering
       security:
         - maskinporten: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: |
+            En unik UUID (RFC 4122) generert av klienten for denne innsendingen.
+            Ved nettverksfeil skal klienten gjenbruke nøyaktig samme verdi ved retry — tjenesten returnerer da
+            det opprinnelige svaret uten å sende meldingen på nytt.
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
       requestBody:
         required: true
         content:
@@ -117,7 +129,7 @@ paths:
                 type: string
                 example: /v1/innrapportering/abc123
         "400":
-          description: Forespørselen mangler påkrevd innhold eller har feil Content-Type
+          description: Forespørselen mangler påkrevd innhold, har ugyldig `Idempotency-Key`, eller feil Content-Type
           content:
             application/json:
               schema:

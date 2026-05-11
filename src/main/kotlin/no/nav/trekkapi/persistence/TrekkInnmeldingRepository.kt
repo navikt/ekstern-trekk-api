@@ -8,6 +8,7 @@ import no.nav.trekkapi.api.rejected
 import no.nav.trekkapi.innmelding.MessageStatusRow
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.persistence.table.MessageStatusTable
+import no.nav.trekkapi.persistence.table.MessageStatusTable.idempotencyKey
 import no.nav.trekkapi.persistence.table.MessageStatusTable.latestStatus
 import no.nav.trekkapi.persistence.table.MessageStatusTable.messageId
 import no.nav.trekkapi.persistence.table.MessageStatusTable.orgNr
@@ -25,13 +26,23 @@ import java.time.temporal.ChronoUnit
 
 class TrekkInnmeldingRepository(private val database: Database) {
 
-    suspend fun register(orgnr: String, id: String) {
-        insert(orgnr, id)
+    suspend fun register(orgnr: String, id: String, idempotencyKeyValue: String) {
+        insert(orgnr, id, idempotencyKeyValue = idempotencyKeyValue)
     }
 
     suspend fun registerResponse(orgnr: String, id: String, akseptert: Boolean, beskrivelse: String? = null, kode: String? = null) {
         val status = if (akseptert) MessageStatusEnum.ACCEPTED else MessageStatusEnum.REJECTED
         update(orgnr, id, status, description = beskrivelse, code = kode)
+    }
+
+    suspend fun findByIdempotencyKey(orgnr: String, idempotencyKeyValue: String): String? = withContext(Dispatchers.IO) {
+        transaction(database.db) {
+            MessageStatusTable
+                .select(messageId)
+                .where { (orgNr eq orgnr) and (idempotencyKey eq idempotencyKeyValue) }
+                .mapNotNull { it[messageId] }
+                .singleOrNull()
+        }
     }
 
     suspend fun findNewestStatus(orgnr: String, id: String): MessageStatus? {
@@ -47,13 +58,14 @@ class TrekkInnmeldingRepository(private val database: Database) {
         return get(orgnr, id)
     }
 
-    suspend fun insert(orgnr: String, id: String, now: Instant = nowOsloToInstant().truncatedTo(ChronoUnit.MICROS)): Boolean = withContext(Dispatchers.IO) {
+    suspend fun insert(orgnr: String, id: String, now: Instant = nowOsloToInstant().truncatedTo(ChronoUnit.MICROS), idempotencyKeyValue: String): Boolean = withContext(Dispatchers.IO) {
         transaction(database.db) {
             MessageStatusTable.insertIgnore {
                 it[orgNr] = orgnr
                 it[messageId] = id
                 it[processedAt] = now
                 it[latestStatus] = MessageStatusEnum.PENDING
+                it[idempotencyKey] = idempotencyKeyValue
             }.insertedCount == 1
         }
     }
@@ -82,7 +94,7 @@ class TrekkInnmeldingRepository(private val database: Database) {
     suspend fun get(orgnr: String, id: String): MessageStatusRow? = withContext(Dispatchers.IO) {
         transaction(database.db) {
             MessageStatusTable
-                .select(orgNr, messageId, processedAt, latestStatus, responseReceivedAt, responseDescription, responseCode)
+                .select(orgNr, messageId, processedAt, latestStatus, responseReceivedAt, responseDescription, responseCode, idempotencyKey)
                 .where { (messageId eq id) and (orgNr eq orgnr) }
                 .mapNotNull {
                     MessageStatusRow(
@@ -92,7 +104,8 @@ class TrekkInnmeldingRepository(private val database: Database) {
                         latestStatus = it[latestStatus],
                         responseReceivedAt = it[responseReceivedAt],
                         responseDescription = it[responseDescription],
-                        responseCode = it[responseCode]
+                        responseCode = it[responseCode],
+                        idempotencyKey = it[idempotencyKey]
                     )
                 }
                 .singleOrNull()
