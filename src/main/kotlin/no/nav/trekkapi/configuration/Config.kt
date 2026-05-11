@@ -25,7 +25,9 @@ data class Config(
 
 data class Environment(
     val naisClusterName: NaisClusterName
-)
+) {
+    fun isProduction() = naisClusterName.value == "prod-gcp"
+}
 
 data class Server(
     val port: Port,
