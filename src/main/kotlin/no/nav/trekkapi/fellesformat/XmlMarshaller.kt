@@ -43,7 +43,11 @@ class XmlMarshaller(jaxbContext: JAXBContext) {
     }
 
     fun <T> unmarshal(xml: String, clazz: Class<T>): T {
-        val reader = XMLInputFactory.newInstance().createXMLStreamReader(xml.reader())
+        val factory = XMLInputFactory.newInstance().apply {
+            setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false)
+            setProperty(XMLInputFactory.SUPPORT_DTD, false)
+        }
+        val reader = factory.createXMLStreamReader(xml.reader())
         return synchronized(unmarshallingMonitor) {
             unmarshaller.unmarshal(reader, clazz).value
         }

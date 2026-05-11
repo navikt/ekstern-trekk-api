@@ -24,6 +24,7 @@ import no.nav.trekkapi.persistence.messageStatusMigrationConfig
 import no.nav.trekkapi.plugin.configureContentNegotiation
 import no.nav.trekkapi.plugin.configureMetrics
 import no.nav.trekkapi.plugin.configureRoutes
+import no.nav.trekkapi.plugin.configureStatusPages
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.coroutines.coroutineContext
@@ -94,6 +95,8 @@ fun trekkapiModule(
         log.info("Configured prometheus metrics")
         configureContentNegotiation()
         log.info("Configured content negotiation (JSON)")
+        configureStatusPages()
+        log.info("Configured status pages")
 //        configureAuthentication() HANGS forever ??
 //        log.info("Configured authentication")
         configureRoutes(trekkInnmeldingService, prometheusMeterRegistry)
