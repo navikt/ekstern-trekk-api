@@ -16,14 +16,14 @@ import kotlin.uuid.Uuid
 fun main() {
     val client = LocalTestClient()
 
-    // Simulert innmelding kan gjøres ved å GET'e http://localhost:8080/test/putinnrapportering/{id}
-    // Etter det kan det verifiseres at DB inneholder ny meldingsstatus for "123456789-id"
-    // Simulert respons kan gjøres ved putMessageOnResponseTopic, med ediLoggId = "trekkapi-123456789-id"
-    // Etter det kan det verifiseres at DB inneholder oppdatert meldingsstatus for "123456789-id"
+    // Simulert innmelding kan gjøres ved å GET'e http://localhost:8080/test/putinnrapportering
+    // Etter det kan det verifiseres at DB inneholder ny meldingsstatus for orgnr 123456789, og ny generert ID
+    // Simulert respons kan gjøres ved putMessageOnResponseTopic, med orgnr 123456789 og den nye IDen
+    // Etter det kan det verifiseres at DB inneholder oppdatert meldingsstatus orgnr 123456789, og den nye IDen
     // Meldingsstatus kan også hentes ved å GET'e http://localhost:8080/test/innrapportering/{id}
 
-//    client.putMessageOnResponseTopic("trekkapi-123456789-aage1")
-//    client.listAllMessages("team-emottak.trekkapi.response")
+//    client.putMessageOnResponseTopic("9e72380a-5524-4a0e-b629-e43c1a219091")
+//    client.listAllMessages("team-emottak.trekkapi.respons")
 //    client.readDb("select count(*) from message_status")
     client.readDb("select * from message_status")
 }
@@ -41,11 +41,11 @@ class LocalTestClient {
 
     val kafkaProducer = KafkaProducer<String, String>(kafkaProperties)
 
-    fun putMessageOnResponseTopic(ediLoggId: String = "trekkapi-123456789-id") {
-        val topic = "team-emottak.trekkapi.response"
+    fun putMessageOnResponseTopic(id: String = "id") {
+        val topic = "team-emottak.trekkapi.respons"
         val key = Uuid.random().toString()
         val value = readClasspathFile("trekkopplysning_respons.xml")!!
-        val edited = value.replace("trekkapi-69abb69f-b491-4d34-aeb1-10c02c7b98b6", ediLoggId)
+        val edited = value.replace("69abb69f-b491-4d34-aeb1-10c02c7b98b6", id)
         val headers = emptyList<RecordHeader>()
         sendMessage(topic, key, edited, headers)
     }

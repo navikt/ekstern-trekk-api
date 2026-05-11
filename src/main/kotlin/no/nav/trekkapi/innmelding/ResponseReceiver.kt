@@ -39,19 +39,19 @@ suspend fun startResponseReceiver(
         .map { record ->
             log.debug("Processing record: {}", record)
             val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponse_FellesFormat(record.value())
-            val orgnrOgMeldingsId = trekkInnmeldingModel.orgnrOgMeldingsId(fellesFormat)
+            val (orgnummer, meldingsid) = trekkInnmeldingModel.orgnrOgMeldingsId(fellesFormat)
             val akseptert = trekkInnmeldingModel.akseptert(fellesFormat)
             if (akseptert) {
-                trekkInnmeldingRepository.registerResponse(orgnrOgMeldingsId.first, orgnrOgMeldingsId.second, true, null)
-                log.info("Response på trekkopplysningsmelding med orgnr ${orgnrOgMeldingsId.first}, meldingsId ${orgnrOgMeldingsId.second} er lagret, status: akseptert")
+                trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, true, null)
+                log.info("Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: akseptert")
             } else {
                 val avvist = trekkInnmeldingModel.avvist(fellesFormat)
                 if (avvist) {
                     val beskrivelse = trekkInnmeldingModel.hentAvvisningsBeskrivelse(fellesFormat)
-                    trekkInnmeldingRepository.registerResponse(orgnrOgMeldingsId.first, orgnrOgMeldingsId.second, false, beskrivelse)
-                    log.info("Response på trekkopplysningsmelding med orgnr ${orgnrOgMeldingsId.first}, meldingsId ${orgnrOgMeldingsId.second} er lagret, status: avvist, beskrivelse: $beskrivelse")
+                    trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, false, beskrivelse)
+                    log.info("Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: avvist, beskrivelse: $beskrivelse")
                 } else {
-                    log.error("Ukjent status for trekkopplysningsmelding med orgnr ${orgnrOgMeldingsId.first}, meldingsId ${orgnrOgMeldingsId.second}")
+                    log.error("Ukjent status for trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid")
                 }
             }
             record.offset.acknowledge()
