@@ -10,7 +10,7 @@ import no.nav.trekkapi.log
 import no.nav.trekkapi.util.getEnvVar
 
 // Lag en config for hver tjenestetype, hvis det blir flere tjenester (sjekker forskjellig audience for hver)
-const val MASKINPORTEN_AUTH_INMMELDING = "MASKINPORTEN_INNMELDING"
+const val MASKINPORTEN_AUTH_INNMELDING = "MASKINPORTEN_INNMELDING"
 
 const val SCOPE_INNMELDING = "nav:utbetaling/trekkopplysning/innmelding"
 
@@ -19,7 +19,7 @@ const val SCOPE_INNMELDING = "nav:utbetaling/trekkopplysning/innmelding"
 // maskinporten må akseptere bruker X. Og så må vi få ut orgnr fra authdetails
 fun getInnmeldingConfig(): TokenSupportConfig = TokenSupportConfig(
     IssuerConfig(
-        name = MASKINPORTEN_AUTH_INMMELDING,
+        name = MASKINPORTEN_AUTH_INNMELDING,
         // "https://test.maskinporten.no/.well-known/oauth-authorization-server"
         discoveryUrl = getEnvVar("MASKINPORTEN_WELL_KNOWN_URL", "http://localhost:3344/AZURE_AD/.well-known/openid-configuration"),
         acceptedAudience = listOf(SCOPE_INNMELDING),
@@ -27,15 +27,15 @@ fun getInnmeldingConfig(): TokenSupportConfig = TokenSupportConfig(
     )
 )
 
-fun getRequiredClaims(): RequiredClaims = RequiredClaims(issuer = MASKINPORTEN_AUTH_INMMELDING, claimMap = arrayOf("consumer", "scope"))
+fun getRequiredClaims(): RequiredClaims = RequiredClaims(issuer = MASKINPORTEN_AUTH_INNMELDING, claimMap = arrayOf("consumer", "scope"))
 
 suspend fun RoutingContext.orgNrFromTokenValidationContext(): String? {
     val principal = call.principal<TokenValidationContextPrincipal>()
     log.debug("### Principal: $principal")
     val context = principal?.context
     log.debug("### Context: $context")
-    val claims = context?.getClaims(MASKINPORTEN_AUTH_INMMELDING)
-    log.debug("### Claims for $MASKINPORTEN_AUTH_INMMELDING: $claims")
+    val claims = context?.getClaims(MASKINPORTEN_AUTH_INNMELDING)
+    log.debug("### Claims for $MASKINPORTEN_AUTH_INNMELDING: $claims")
     val consumer = claims?.get("consumer") as Map<*, *>
     log.debug("### Claim 'consumer': $consumer")
     val sub = claims?.get("sub") as Map<*, *>

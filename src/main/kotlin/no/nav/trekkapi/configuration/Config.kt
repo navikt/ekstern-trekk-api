@@ -50,7 +50,7 @@ data class TrekkopplysningMq(
     val channel: String,
     val queue: String,
     val username: String,
-    val password: String
+    val password: Masked
 )
 
 data class KafkaResponseQueue(
