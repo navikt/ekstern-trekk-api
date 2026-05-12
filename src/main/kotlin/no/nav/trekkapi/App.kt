@@ -32,18 +32,19 @@ import kotlin.coroutines.coroutineContext
 
 val log: Logger = LoggerFactory.getLogger("no.nav.trekkapi.App")
 
-fun main(args: Array<String>) = SuspendApp {
-    log.info("--- Starting application")
-    result {
-        resourceScope {
-            runServer()
-            awaitCancellation()
+fun main(args: Array<String>) =
+    SuspendApp {
+        log.info("--- Starting application")
+        result {
+            resourceScope {
+                runServer()
+                awaitCancellation()
+            }
+        }.onFailure { error ->
+            log.error("Application startup failed", error)
+            throw error
         }
-    }.onFailure { error ->
-        log.error("Application startup failed", error)
-        throw error
     }
-}
 
 suspend fun ResourceScope.runServer() {
     log.info("--- Getting config")
@@ -68,7 +69,7 @@ suspend fun ResourceScope.runServer() {
         factory = Netty,
         port = serverConfig.port.value,
         preWait = serverConfig.preWait,
-        module = trekkapiModule(trekkInnmeldingService, prometheusMeterRegistry)
+        module = trekkapiModule(trekkInnmeldingService, prometheusMeterRegistry),
     )
 
     log.debug("Configuration: {}", config)
@@ -80,7 +81,7 @@ suspend fun ResourceScope.runServer() {
                 config.kafkaResponseQueue.topic,
                 config.kafka.groupId,
                 trekkInnmeldingModel,
-                trekkInnmeldingRepository
+                trekkInnmeldingRepository,
             )
         }
     }
@@ -88,7 +89,7 @@ suspend fun ResourceScope.runServer() {
 
 fun trekkapiModule(
     trekkInnmeldingService: TrekkInnmeldingService,
-    prometheusMeterRegistry: PrometheusMeterRegistry
+    prometheusMeterRegistry: PrometheusMeterRegistry,
 ): Application.() -> Unit {
     log.info("Configure plugins and routes")
     return {

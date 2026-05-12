@@ -10,26 +10,28 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 class SwaggerTest {
-
     @Test
-    fun `GET swagger returns 200 with HTML`() = testApplication {
-        application {
-            routing {
-                swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
+    fun `GET swagger returns 200 with HTML`() =
+        testApplication {
+            application {
+                routing {
+                    swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
+                }
             }
+
+            val response = client.get("/swagger")
+
+            assertEquals(HttpStatusCode.OK, response.status)
         }
-
-        val response = client.get("/swagger")
-
-        assertEquals(HttpStatusCode.OK, response.status)
-    }
 
     @Test
     fun `OpenAPI spec contains expected endpoints`() {
-        val spec = SwaggerTest::class.java.getResourceAsStream("/openapi/documentation.yaml")
-            ?.bufferedReader()
-            ?.readText()
-            ?: error("openapi/documentation.yaml not found in resources")
+        val spec =
+            SwaggerTest::class.java
+                .getResourceAsStream("/openapi/documentation.yaml")
+                ?.bufferedReader()
+                ?.readText()
+                ?: error("openapi/documentation.yaml not found in resources")
 
         assertContains(spec, "/v1/innrapportering")
         assertContains(spec, "post:")

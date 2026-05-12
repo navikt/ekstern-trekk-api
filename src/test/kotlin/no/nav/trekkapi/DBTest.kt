@@ -10,12 +10,12 @@ fun trekkApiPostgres(): PostgreSQLContainer =
         withLabel("app-navn", "ekstern-trekk-api")
         start()
         println(
-            "Testdatabasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test"
+            "Testdatabasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test",
         )
     }
 
-fun PostgreSQLContainer.testConfiguration(): HikariConfig {
-    return HikariConfig().apply {
+fun PostgreSQLContainer.testConfiguration(): HikariConfig =
+    HikariConfig().apply {
         jdbcUrl = this@testConfiguration.jdbcUrl
         username = this@testConfiguration.username
         password = this@testConfiguration.password
@@ -26,4 +26,3 @@ fun PostgreSQLContainer.testConfiguration(): HikariConfig {
         maxLifetime = 600001
         initializationFailTimeout = 5000
     }
-}

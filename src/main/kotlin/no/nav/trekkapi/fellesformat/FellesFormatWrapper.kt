@@ -10,13 +10,25 @@ import javax.xml.datatype.DatatypeFactory
 private val fellesFormatFactory = ObjectFactory()
 
 // todo må evt. finne disse via auth/maskinporten. Vet ikke om HER-id er obligatorisk. Test ved å kalle fagsystem
-data class AuthData(val herId: String, val orgnummer: String)
+data class AuthData(
+    val herId: String,
+    val orgnummer: String,
+)
 
-data class InputTrekkopplysning(val conversationId: String, val messageId: String, val payload: String)
+data class InputTrekkopplysning(
+    val conversationId: String,
+    val messageId: String,
+    val payload: String,
+)
 
-fun createEIFellesFormat_Trekkopplysning(inputTrekkopplysning: InputTrekkopplysning, authData: AuthData, timestamp: Instant): EIFellesformat =
+fun createEIFellesFormatTrekkopplysning(
+    inputTrekkopplysning: InputTrekkopplysning,
+    authData: AuthData,
+    timestamp: Instant,
+): EIFellesformat =
     fellesFormatFactory.createEIFellesformat().apply {
-        mottakenhetBlokk = createFellesFormatMottakEnhetBlokk(authData, inputTrekkopplysning.conversationId, inputTrekkopplysning.messageId, timestamp)
+        mottakenhetBlokk =
+            createFellesFormatMottakEnhetBlokk(authData, inputTrekkopplysning.conversationId, inputTrekkopplysning.messageId, timestamp)
         msgHead = unmarshal(inputTrekkopplysning.payload, MsgHead::class.java)
     }
 
@@ -25,8 +37,13 @@ const val TREKKOPPLYSNING_INPUT_ROLE = "Fordringshaver"
 const val TREKKOPPLYSNING_INPUT_ACTION = "Innmelding"
 const val TREKKAPI_PARTHER_REF = "EKSTERN_TREKK_API"
 
-internal fun createFellesFormatMottakEnhetBlokk(authData: AuthData, conversationId: String, messageId: String, timestamp: Instant): EIFellesformat.MottakenhetBlokk {
-    return fellesFormatFactory.createEIFellesformatMottakenhetBlokk().apply {
+internal fun createFellesFormatMottakEnhetBlokk(
+    authData: AuthData,
+    conversationId: String,
+    messageId: String,
+    timestamp: Instant,
+): EIFellesformat.MottakenhetBlokk =
+    fellesFormatFactory.createEIFellesformatMottakenhetBlokk().apply {
         ebXMLSamtaleId = conversationId
         ebAction = TREKKOPPLYSNING_INPUT_ACTION
         ebService = TREKKOPPLYSNING_SERVICE
@@ -40,8 +57,8 @@ internal fun createFellesFormatMottakEnhetBlokk(authData: AuthData, conversation
         partnerReferanse = TREKKAPI_PARTHER_REF
         avsenderRef = ""
     }
-}
 
-fun Instant.toXmlGregorianCalendar() = DatatypeFactory.newInstance().newXMLGregorianCalendar(
-    GregorianCalendar().apply { this.setTimeInMillis(this@toXmlGregorianCalendar.toEpochMilli()) }
-)
+fun Instant.toXmlGregorianCalendar() =
+    DatatypeFactory.newInstance().newXMLGregorianCalendar(
+        GregorianCalendar().apply { this.setTimeInMillis(this@toXmlGregorianCalendar.toEpochMilli()) },
+    )

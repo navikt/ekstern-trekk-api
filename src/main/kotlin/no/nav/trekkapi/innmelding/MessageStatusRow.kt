@@ -10,5 +10,5 @@ data class MessageStatusRow(
     val latestStatus: MessageStatusEnum,
     val responseReceivedAt: Instant?,
     val responseDescription: String?,
-    val responseCode: String?
+    val responseCode: String?,
 )

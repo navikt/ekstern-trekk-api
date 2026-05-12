@@ -6,7 +6,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class ConfiguratorTest {
-
     @Test
     fun `config loads without throwing`() {
         val config = config()

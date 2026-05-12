@@ -21,9 +21,7 @@ import kotlin.use
 
 // todo lag test for denne, hvis vi får til maskinporten mock
 
-fun Route.innmeldingRoutes(
-    trekkInnmeldingService: TrekkInnmeldingService
-) {
+fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
     post("/v1/innrapportering") {
         log.debug("Innrapportering kalt")
         val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
@@ -41,8 +39,9 @@ fun Route.innmeldingRoutes(
         log.debug("Hent innrapporteringstatus kalt med id: $id")
         val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
 
-        val status = trekkInnmeldingService.getStatus(orgnr, id)
-            ?: throw NotFoundException("Finnes ingen status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
+        val status =
+            trekkInnmeldingService.getStatus(orgnr, id)
+                ?: throw NotFoundException("Finnes ingen status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
         log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
         call.respond(HttpStatusCode.OK, status)
     }
@@ -52,9 +51,7 @@ private fun String.validateInnmeldingXML() =
     runCatching { unmarshal(this, MsgHead::class.java) }
         .onFailure { throw ValidationException("Ugyldig XML-format", it) }
 
-fun Route.testRoutes(
-    trekkInnmeldingService: TrekkInnmeldingService
-) {
+fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
     // TESTVERSJON av POST hvor ID genereres, ingen auth, og body leses fra testfil
     get("/test/putinnrapportering") {
         log.debug("TEST-Innrapportering kalt")

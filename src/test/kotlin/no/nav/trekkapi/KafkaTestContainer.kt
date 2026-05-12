@@ -20,10 +20,15 @@ object KafkaTestContainer {
         kafkaContainer.stop()
     }
 
-    fun createTopic(topicName: String, partitions: Int = 1, replicationFactor: Short = 1) {
-        val config = mapOf(
-            AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers
-        )
+    fun createTopic(
+        topicName: String,
+        partitions: Int = 1,
+        replicationFactor: Short = 1,
+    ) {
+        val config =
+            mapOf(
+                AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
+            )
 
         AdminClient.create(config).use { adminClient ->
             val newTopic = NewTopic(topicName, partitions, replicationFactor)
