@@ -1,8 +1,8 @@
 package no.nav.trekkapi.persistence.table
 
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.javatime.timestamp
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.javatime.timestamp
 import org.postgresql.util.PGobject
 
 object MessageStatusTable : Table("message_status") {
@@ -12,13 +12,15 @@ object MessageStatusTable : Table("message_status") {
     val orgNr: Column<String> = varchar("org_nr", 32)
 
     val processedAt: Column<java.time.Instant> = timestamp("processed_at")
-        .defaultExpression(org.jetbrains.exposed.sql.javatime.CurrentTimestamp)
+        .defaultExpression(org.jetbrains.exposed.v1.javatime.CurrentTimestamp)
 
     val latestStatus: Column<MessageStatusEnum> = messageStatusEnumeration("latest_status")
 
     val responseReceivedAt: Column<java.time.Instant?> = timestamp("response_at").nullable()
 
     val responseDescription: Column<String?> = varchar("response_description", 256).nullable()
+
+    val responseCode: Column<String?> = varchar("response_code", 64).nullable()
 
     override val primaryKey = PrimaryKey(messageId)
 }

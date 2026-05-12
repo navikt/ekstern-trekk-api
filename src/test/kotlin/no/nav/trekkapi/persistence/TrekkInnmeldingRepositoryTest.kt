@@ -2,7 +2,8 @@ package no.nav.trekkapi.persistence
 
 import com.zaxxer.hikari.HikariConfig
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import no.nav.trekkapi.persistence.table.MessageStatusEnum
+import org.jetbrains.exposed.v1.jdbc.transactions.experimental.newSuspendedTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -11,7 +12,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 // For å kunne opprette DB bare 1 gang for hele testklassen
 // Alternativet er å flytte Before/AfterAll funksjonenw til et companion object
@@ -44,8 +44,10 @@ class TrekkInnmeldingRepositoryTest {
         newSuspendedTransaction {
             repo.register(orgnr, id)
             val status = repo.findNewestStatus(orgnr, id)
-            assertEquals("Melding mottatt og sendt til behandling", status!!.status)
-            assertTrue(status.description!!.startsWith("Sendt inn"))
+            assertEquals(MessageStatusEnum.PENDING, status!!.status)
+            assertEquals(id, status.id)
+            assertNotNull(status.submittedAt)
+            assertEquals(status.submittedAt, status.updatedAt)
             exec("SELECT count(*) FROM message_status") { rs ->
                 rs.next()
                 assertEquals(1, rs.getInt(1))
@@ -55,7 +57,7 @@ class TrekkInnmeldingRepositoryTest {
                 assertEquals("123451111", rs.getString("org_nr"))
                 assertEquals("theIdOfTheInsertedRecord", rs.getString("message_id"))
                 assertNotNull(rs.getTimestamp("processed_at"))
-                assertEquals("BEING_PROCESSED", rs.getString("latest_status"))
+                assertEquals("PENDING", rs.getString("latest_status"))
                 assertNull(rs.getTimestamp("response_at"))
                 assertNull(rs.getString("response_description"))
             }
@@ -72,8 +74,10 @@ class TrekkInnmeldingRepositoryTest {
             repo.register(orgnr, id)
             repo.registerResponse("123456789", "theIdOfTheInsertedRecord", true)
             val status = repo.findNewestStatus(orgnr, id)
-            assertEquals("Melding ferdig behandlet", status!!.status)
-            assertTrue(status.description!!.startsWith("Kvittering mottatt"))
+            assertEquals(MessageStatusEnum.ACCEPTED, status!!.status)
+            assertEquals(id, status.id)
+            assertNotNull(status.submittedAt)
+            assertNotNull(status.updatedAt)
             exec("SELECT * FROM message_status") { rs ->
                 rs.next()
                 assertEquals("123456789", rs.getString("org_nr"))
@@ -94,10 +98,14 @@ class TrekkInnmeldingRepositoryTest {
         val id = "theIdOfTheInsertedRecord"
         newSuspendedTransaction {
             repo.register(orgnr, id)
-            repo.registerResponse("123456789", "theIdOfTheInsertedRecord", false, "Avvist av test")
+            repo.registerResponse("123456789", "theIdOfTheInsertedRecord", false, "Avvist av test", "TEST_CODE")
             val status = repo.findNewestStatus(orgnr, id)
-            assertEquals("Melding behandlet, ikke akseptert", status!!.status)
-            assertEquals("Avvist av test", status.description!!)
+            assertEquals(MessageStatusEnum.REJECTED, status!!.status)
+            assertEquals(id, status.id)
+            assertNotNull(status.submittedAt)
+            assertNotNull(status.updatedAt)
+            assertEquals("Avvist av test", status.rejectionDescription)
+            assertEquals("TEST_CODE", status.rejectionCode)
             exec("SELECT * FROM message_status") { rs ->
                 rs.next()
                 assertEquals("123456789", rs.getString("org_nr"))
@@ -106,6 +114,7 @@ class TrekkInnmeldingRepositoryTest {
                 assertEquals("REJECTED", rs.getString("latest_status"))
                 assertNotNull(rs.getTimestamp("response_at"))
                 assertEquals("Avvist av test", rs.getString("response_description"))
+                assertEquals("TEST_CODE", rs.getString("response_code"))
             }
             rollback()
         }
