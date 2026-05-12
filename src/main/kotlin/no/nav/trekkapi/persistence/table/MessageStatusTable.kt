@@ -20,6 +20,8 @@ object MessageStatusTable : Table("message_status") {
 
     val responseDescription: Column<String?> = varchar("response_description", 256).nullable()
 
+    val responseCode: Column<String?> = varchar("response_code", 64).nullable()
+
     override val primaryKey = PrimaryKey(messageId)
 }
 

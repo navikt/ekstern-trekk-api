@@ -1,7 +1,10 @@
 package no.nav.trekkapi.persistence.table
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class MessageStatusEnum(val description: String) {
-    BEING_PROCESSED("Melding mottatt og sendt til behandling"),
+    PENDING("Melding mottatt og sendt til behandling"),
     ACCEPTED("Melding ferdig behandlet"),
-    REJECTED("Melding behandlet, ikke akseptert") ;
+    REJECTED("Melding avvist, se beskrivelse")
 }

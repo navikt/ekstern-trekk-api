@@ -9,15 +9,15 @@ av trekk til NAV"/>
         <Ack V="N" DN="Nei"/>
         <Sender>
             <Organisation>
-                <OrganisationName>AIDN AS</OrganisationName>
+                <OrganisationName>TEST ORG</OrganisationName>
                 <Ident>
-                    <Id>8139944</Id>
-                    <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
+                    <Id>000000000</Id>
+                    <TypeId V="ENH" S="2.16.578.1.12.4.1.1.9051" DN="Organisasjonsnummer"/>
                 </Ident>
                 <Organisation>
                     <OrganisationName>Økonomi og oppgjør</OrganisationName>
                     <Ident>
-                        <Id>8142626</Id>
+                        <Id>000000001</Id>
                         <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
                     </Ident>
                 </Organisation>
