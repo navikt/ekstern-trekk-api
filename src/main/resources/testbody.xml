@@ -9,9 +9,9 @@ av trekk til NAV"/>
         <Ack V="N" DN="Nei"/>
         <Sender>
             <Organisation>
-                <OrganisationName>AIDN AS</OrganisationName>
+                <OrganisationName>TEST ORG</OrganisationName>
                 <Ident>
-                    <Id>8139944</Id>
+                    <Id>1234567</Id>
                     <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
                 </Ident>
                 <Organisation>

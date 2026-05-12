@@ -66,7 +66,7 @@ class TrekkInnmeldingModelTest {
 
     @Test
     fun `Parse FellesFormat response produces expected object`() {
-        val respons = this::class.java.getResource("/trekkopplysning_respons.xml")?.readText() ?: ""
+        val respons = this::class.java.getResource("/trekkopplysning_respons_avvist_duplikat.xml")?.readText() ?: ""
 
         val trekkInnmeldingModel = TrekkInnmeldingModel()
         val result = trekkInnmeldingModel.parseTrekkInnmeldingResponse_FellesFormat(respons.toByteArray())
@@ -77,16 +77,17 @@ class TrekkInnmeldingModelTest {
         assertEquals("Ytelsesutbetaler", result.mottakenhetBlokk.ebRole, "ebRole")
         assertEquals("91e01f3c-b754-4ea3-98fe-07c249661bba", result.mottakenhetBlokk.ebXMLSamtaleId, "convId")
         assertEquals("123456789", result.mottakenhetBlokk.orgNummer, "orgnr")
-        assertEquals("8142626", result.mottakenhetBlokk.herIdentifikator, "HER-id")
+        assertEquals("000000001", result.mottakenhetBlokk.herIdentifikator, "HER-id")
         assertEquals("123456789", result.mottakenhetBlokk.avsender, "avsender")
         assertEquals("EKSTERN_TREKK_API", result.mottakenhetBlokk.partnerReferanse, "partnerRef")
         assertEquals("xml", result.mottakenhetBlokk.meldingsType, "meldingsType")
         assertTrue(result.mottakenhetBlokk.mottattDatotid != null, "mottattDatotid")
         assertEquals("someRef", result.mottakenhetBlokk.avsenderRef, "avsenderRef")
 
-        assertEquals(true, trekkInnmeldingModel.avvist(result), "Avvist")
-        assertEquals(false, trekkInnmeldingModel.akseptert(result), "Akseptert")
-        assertEquals("Trekkvedtak finnes fra før", trekkInnmeldingModel.hentAvvisningsBeskrivelse(result), "Beskrivelse")
+        assertEquals(true, trekkInnmeldingModel.isRejected(result), "Avvist")
+        assertEquals(false, trekkInnmeldingModel.isAccepted(result), "Akseptert")
+        assertEquals("Trekkvedtak finnes fra før", trekkInnmeldingModel.getRejectionDescription(result), "Beskrivelse")
+        assertEquals("B720007F", trekkInnmeldingModel.getRejectionCode(result), "Avvisningskode")
         assertEquals("123456789", trekkInnmeldingModel.orgnrOgMeldingsId(result).first, "DB orgnr")
         assertEquals("69abb69f-b491-4d34-aeb1-10c02c7b98b6", trekkInnmeldingModel.orgnrOgMeldingsId(result).second, "DB id")
     }
