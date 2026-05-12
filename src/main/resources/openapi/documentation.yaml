@@ -10,7 +10,7 @@ info:
 
     1. Send trekkopplysningsmelding med `POST /v1/innrapportering`.
     2. Tjenesten returnerer HTTP 202 med en `Location`-header som peker til ressursen.
-    3. Poll `GET /v1/innrapportering/{id}` til meldingen er ferdigbehandlet (`Melding ferdig behandlet` eller `Melding behandlet, ikke akseptert`).
+    3. Poll `GET /v1/innrapportering/{id}` til meldingen er ferdigbehandlet (`ACCEPTED` eller `REJECTED`).
   version: "1.0"
 servers:
   - url: https://ekstern-trekk-api.ekstern.nav.no
@@ -25,10 +25,10 @@ paths:
         Mottar en trekkopplysningsmelding i XML-format og sender den til behandling.
         Tjenesten genererer en unik ID og returnerer den i `Location`-headeren.
 
-        XML-meldingen må følge skjemaet `MsgHead-v1_2.xsd`
-        (namespace `http://www.kith.no/xmlstds/msghead/2006-05-24`)
-        med innhold i henhold til `InnrapporteringTrekk-2010-02-04.xsd`
-        (namespace `http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04`).
+        Meldingen sendes som XML i henhold til `MsgHead-v1_2.xsd`
+        (`http://www.kith.no/xmlstds/msghead/2006-05-24`)
+        med innhold etter `InnrapporteringTrekk-2010-02-04.xsd`
+        (`http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04`).
       operationId: postInnrapportering
       security:
         - maskinporten: []
@@ -112,34 +112,50 @@ paths:
           description: Meldingen er mottatt og sendt til behandling
           headers:
             Location:
-              description: Relativ URL til statusressursen for den innsendte meldingen
+              description: Relativ URL til statusressursen for den innsendte meldingen. ID-en er en UUID.
               schema:
                 type: string
-                example: /v1/innrapportering/abc123
+              example: /v1/innrapportering/7f41c4e9-b6bd-44a3-822b-622332b4e421
         "400":
           description: Forespørselen mangler påkrevd innhold eller har feil Content-Type
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Content-Type must be application/xml"
         "401":
           description: Manglende eller ugyldig Maskinporten-token
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Unauthorized"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Forbidden"
         "422":
           description: XML-innholdet er ikke gyldig i henhold til forventet skjema
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Invalid XML format"
         "500":
           description: Uventet feil på tjenersiden
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Unexpected error"
 
   /v1/innrapportering/{id}:
     get:
@@ -157,7 +173,8 @@ paths:
           description: ID for meldingen, returnert i `Location`-headeren fra POST-kallet
           schema:
             type: string
-            example: abc123
+            format: uuid
+            example: 7f41c4e9-b6bd-44a3-822b-622332b4e421
       responses:
         "200":
           description: Nåværende behandlingsstatus for meldingen
@@ -171,12 +188,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Unauthorized"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Forbidden"
         "404":
           description: Ingen melding funnet med oppgitt ID
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "No message found with the given ID"
+        "500":
+          description: Uventet feil på tjenersiden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Unexpected error"
 
 components:
   securitySchemes:
@@ -197,7 +234,6 @@ components:
         message:
           type: string
           description: Beskrivelse av feilen
-          example: Ugyldig XML-format
 
     MessageStatus:
       type: object
@@ -209,8 +245,9 @@ components:
       properties:
         id:
           type: string
+          format: uuid
           description: Unik identifikator for innmeldingen, tildelt av tjenesten ved POST.
-          example: "abc-123"
+          example: "7f41c4e9-b6bd-44a3-822b-622332b4e421"
         status:
           type: string
           description: Maskinlesbar behandlingsstatus
