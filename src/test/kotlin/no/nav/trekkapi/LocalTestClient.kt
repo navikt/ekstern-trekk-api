@@ -29,15 +29,15 @@ fun main() {
 }
 
 class LocalTestClient {
-
     val kafkaBrokerUrl = getRunningKafkaBrokerUrl()
-    val kafkaProperties = Properties().apply {
-        put("bootstrap.servers", kafkaBrokerUrl)
-        put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-        put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-        put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-        put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-    }
+    val kafkaProperties =
+        Properties().apply {
+            put("bootstrap.servers", kafkaBrokerUrl)
+            put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+            put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+            put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+            put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+        }
 
     val kafkaProducer = KafkaProducer<String, String>(kafkaProperties)
 
@@ -50,11 +50,18 @@ class LocalTestClient {
         sendMessage(topic, key, edited, headers)
     }
 
-    fun sendMessage(topic: String, key: String, value: String, headers: List<Header> = emptyList()) {
+    fun sendMessage(
+        topic: String,
+        key: String,
+        value: String,
+        headers: List<Header> = emptyList(),
+    ) {
         val record = ProducerRecord(topic, null, key, value, headers)
         kafkaProducer.send(record) { metadata, exception ->
             if (exception == null) {
-                println("Message with key ${record.key()} sent successfully to topic: ${metadata.topic()}, partition: ${metadata.partition()}, offset: ${metadata.offset()}")
+                println(
+                    "Message with key ${record.key()} sent successfully to topic: ${metadata.topic()}, partition: ${metadata.partition()}, offset: ${metadata.offset()}",
+                )
             } else {
                 System.err.println("Error sending message: ${exception.message}")
             }

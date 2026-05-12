@@ -11,9 +11,8 @@ class JmsClient(
     config: TrekkopplysningMq,
     val factory: MQQueueConnectionFactory = MQQueueConnectionFactory(),
     val username: String = config.username,
-    val password: String = config.password.value
+    val password: String = config.password.value,
 ) {
-
     /*
     If we only supply queuemanager and no channel, it seems the connection will be made in "bind/server" mode.
     This led to the error message "Failed to load the IBM MQ native JNI library: 'mqjbnd'".
@@ -32,7 +31,10 @@ class JmsClient(
 
     // Her opprettes ny connection (og lukkes) for hver melding.
     // Kan cache/poole connections hvis dette viser seg å bli for mye overhead
-    fun sendMessage(queue: String, messageText: String) {
+    fun sendMessage(
+        queue: String,
+        messageText: String,
+    ) {
         factory.createContext(username, password, Session.AUTO_ACKNOWLEDGE)?.use {
             it.createProducer().send(it.createQueue(queue), it.createTextMessage(messageText))
         }

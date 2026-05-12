@@ -15,7 +15,7 @@ import no.nav.trekkapi.innmelding.testRoutes
 
 fun Application.configureRoutes(
     trekkInnmeldingService: TrekkInnmeldingService,
-    prometheusMeterRegistry: PrometheusMeterRegistry
+    prometheusMeterRegistry: PrometheusMeterRegistry,
 ) {
     routing {
         naisRoutes(prometheusMeterRegistry)

@@ -7,19 +7,23 @@ import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
 
 class Database(
-    dbConfig: HikariConfig
+    dbConfig: HikariConfig,
 ) {
-    val dataSource = when (dbConfig) {
-        is HikariDataSource -> dbConfig
-        else -> HikariDataSource(dbConfig)
-    }
-    val db = Database.connect(dataSource)
-    fun migrate(migrationConfig: HikariConfig) {
-        val migrationPath = when (getEnvVar("NAIS_CLUSTER_NAME", "local")) {
-            "local", "test" -> "filesystem:src/main/resources/db/migration"
-            else -> "filesystem:/app/db/migration"
+    val dataSource =
+        when (dbConfig) {
+            is HikariDataSource -> dbConfig
+            else -> HikariDataSource(dbConfig)
         }
-        Flyway.configure()
+    val db = Database.connect(dataSource)
+
+    fun migrate(migrationConfig: HikariConfig) {
+        val migrationPath =
+            when (getEnvVar("NAIS_CLUSTER_NAME", "local")) {
+                "local", "test" -> "filesystem:src/main/resources/db/migration"
+                else -> "filesystem:/app/db/migration"
+            }
+        Flyway
+            .configure()
             .dataSource(migrationConfig.jdbcUrl, migrationConfig.username, migrationConfig.password)
             .locations(migrationPath)
             .callbackLocations(migrationPath)

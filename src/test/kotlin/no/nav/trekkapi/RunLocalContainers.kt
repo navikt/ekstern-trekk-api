@@ -77,9 +77,7 @@ fun main() {
     mockOAuth2Server?.shutdown()
 }
 
-fun getRunningKafkaBrokerUrl(): String {
-    return File(localTmp(KAFKA_BROKERS_STORAGE)).readText(Charsets.UTF_8)
-}
+fun getRunningKafkaBrokerUrl(): String = File(localTmp(KAFKA_BROKERS_STORAGE)).readText(Charsets.UTF_8)
 
 fun getRunningPostgresConfiguration(): HikariConfig {
     val currentUrl = File(localTmp(POSTGRES_JDBCURL_STORAGE)).readText(Charsets.UTF_8)
