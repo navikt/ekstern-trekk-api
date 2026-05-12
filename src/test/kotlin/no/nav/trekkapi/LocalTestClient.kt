@@ -44,7 +44,7 @@ class LocalTestClient {
     fun putMessageOnResponseTopic(id: String = "id") {
         val topic = "team-emottak.trekkapi.respons"
         val key = Uuid.random().toString()
-        val value = readClasspathFile("trekkopplysning_respons.xml")!!
+        val value = readClasspathFile("trekkopplysning_respons_avvist_duplikat.xml")!!
         val edited = value.replace("69abb69f-b491-4d34-aeb1-10c02c7b98b6", id)
         val headers = emptyList<RecordHeader>()
         sendMessage(topic, key, edited, headers)

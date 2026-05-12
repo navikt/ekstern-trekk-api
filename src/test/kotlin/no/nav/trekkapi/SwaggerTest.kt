@@ -34,7 +34,7 @@ class SwaggerTest {
         assertContains(spec, "/v1/innrapportering")
         assertContains(spec, "post:")
         assertContains(spec, "get:")
-        assertContains(spec, "InnrapporteringStatus")
+        assertContains(spec, "MessageStatus")
         assertContains(spec, "\"422\"")
     }
 }
