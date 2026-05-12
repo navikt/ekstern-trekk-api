@@ -3,7 +3,7 @@ package no.nav.trekkapi.persistence
 import com.zaxxer.hikari.HikariConfig
 import kotlinx.coroutines.runBlocking
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.experimental.newSuspendedTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
