@@ -3,7 +3,7 @@ package no.nav.trekkapi.persistence
 import com.zaxxer.hikari.HikariConfig
 import kotlinx.coroutines.runBlocking
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
-import org.jetbrains.exposed.v1.jdbc.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -41,7 +41,7 @@ class TrekkInnmeldingRepositoryTest {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123451111"
             val id = "theIdOfTheInsertedRecord"
-            newSuspendedTransaction {
+            suspendTransaction {
                 repo.register(orgnr, id)
                 val status = repo.findNewestStatus(orgnr, id)
                 assertEquals(MessageStatusEnum.PENDING, status!!.status)
@@ -71,7 +71,7 @@ class TrekkInnmeldingRepositoryTest {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123456789"
             val id = "theIdOfTheInsertedRecord"
-            newSuspendedTransaction {
+            suspendTransaction {
                 repo.register(orgnr, id)
                 repo.registerResponse("123456789", "theIdOfTheInsertedRecord", true)
                 val status = repo.findNewestStatus(orgnr, id)
@@ -98,7 +98,7 @@ class TrekkInnmeldingRepositoryTest {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123456789"
             val id = "theIdOfTheInsertedRecord"
-            newSuspendedTransaction {
+            suspendTransaction {
                 repo.register(orgnr, id)
                 repo.registerResponse("123456789", "theIdOfTheInsertedRecord", false, "Avvist av test", "TEST_CODE")
                 val status = repo.findNewestStatus(orgnr, id)
