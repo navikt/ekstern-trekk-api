@@ -6,7 +6,7 @@ import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.trekkapi.auth.MASKINPORTEN_AUTH_INNMELDING
 import no.nav.trekkapi.configuration.config
 import no.nav.trekkapi.innmelding.TrekkInnmeldingService
