@@ -8,6 +8,7 @@ import org.apache.kafka.common.header.Header
 import org.apache.kafka.common.header.internals.RecordHeader
 import java.io.InputStream
 import java.sql.DriverManager
+import java.time.Duration
 import java.util.Properties
 import kotlin.use
 import kotlin.uuid.Uuid
@@ -76,7 +77,7 @@ class LocalTestClient {
         kafkaConsumer.partitionsFor(topic).forEach { partition ->
             kafkaConsumer.assign(listOf(TopicPartition(partition.topic(), partition.partition())))
             kafkaConsumer.seekToBeginning(listOf(TopicPartition(partition.topic(), partition.partition())))
-            kafkaConsumer.poll(5000).forEach { record ->
+            kafkaConsumer.poll(Duration.ofMillis(5000)).forEach { record ->
                 println("Record---------------------------------------------- offset: ${record.offset()}")
                 println("Key: ${record.key()}, Value: ${record.value()}")
             }
