@@ -28,6 +28,6 @@ fun Application.configureRoutes(
         if (!config().environment.isProduction()) {
             testRoutes(trekkInnmeldingService)
         }
-        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
+        swaggerUI(path = "v1/swagger", swaggerFile = "openapi/documentation.yaml")
     }
 }

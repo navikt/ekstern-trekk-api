@@ -41,7 +41,7 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
 
         val status =
             trekkInnmeldingService.getStatus(orgnr, id)
-                ?: throw NotFoundException("Finnes ingen status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
+                ?: throw NotFoundException("No message found with the given ID")
         log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
         call.respond(HttpStatusCode.OK, status)
     }
@@ -49,7 +49,7 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
 
 private fun String.validateInnmeldingXML() =
     runCatching { unmarshal(this, MsgHead::class.java) }
-        .onFailure { throw ValidationException("Ugyldig XML-format", it) }
+        .onFailure { throw ValidationException("Invalid XML format", it) }
 
 fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
     // TESTVERSJON av POST hvor ID genereres, ingen auth, og body leses fra testfil

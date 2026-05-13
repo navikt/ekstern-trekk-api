@@ -15,11 +15,11 @@ class SwaggerTest {
         testApplication {
             application {
                 routing {
-                    swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
+                    swaggerUI(path = "v1/swagger", swaggerFile = "openapi/documentation.yaml")
                 }
             }
 
-            val response = client.get("/swagger")
+            val response = client.get("/v1/swagger")
 
             assertEquals(HttpStatusCode.OK, response.status)
         }
