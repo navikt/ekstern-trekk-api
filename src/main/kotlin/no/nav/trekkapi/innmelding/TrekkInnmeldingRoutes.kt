@@ -14,6 +14,7 @@ import no.kith.xmlstds.msghead._2006_05_24.MsgHead
 import no.nav.trekkapi.auth.orgNrFromTokenValidationContext
 import no.nav.trekkapi.fellesformat.unmarshal
 import no.nav.trekkapi.log
+import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.plugin.UnauthorizedException
 import no.nav.trekkapi.plugin.ValidationException
 import java.io.InputStream
@@ -31,6 +32,7 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         val id = trekkInnmeldingService.register(orgnr, innmeldingXml)
         log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
         call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
+        call.response.header(HttpHeaders.RetryAfter, "10")
         call.respond(HttpStatusCode.Accepted)
     }
 
@@ -43,6 +45,9 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
             trekkInnmeldingService.getStatus(orgnr, id)
                 ?: throw NotFoundException("No message found with the given ID")
         log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
+        if (status.status == MessageStatusEnum.PENDING) {
+            call.response.header(HttpHeaders.RetryAfter, "10")
+        }
         call.respond(HttpStatusCode.OK, status)
     }
 }
