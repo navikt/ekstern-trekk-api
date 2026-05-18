@@ -10,21 +10,28 @@ import io.ktor.server.response.respond
 import no.nav.trekkapi.api.ErrorResponse
 import no.nav.trekkapi.log
 
-class UnauthorizedException(message: String = "Autorisasjonsfeil") : Exception(message)
+class UnauthorizedException(
+    message: String = "Unauthorized",
+) : Exception(message)
 
-class ForbiddenException(message: String = "Ingen tilgang") : Exception(message)
+class ForbiddenException(
+    message: String = "Forbidden",
+) : Exception(message)
 
-class ValidationException(message: String, throwable: Throwable) : Exception(message, throwable)
+class ValidationException(
+    message: String,
+    throwable: Throwable,
+) : Exception(message, throwable)
 
 fun Application.configureStatusPages() {
     install(StatusPages) {
         exception<UnauthorizedException> { call, cause ->
             log.error("Unauthorized: ${cause.message}")
-            call.respond(HttpStatusCode.Unauthorized, ErrorResponse(cause.message ?: "Autorisasjonsfeil"))
+            call.respond(HttpStatusCode.Unauthorized, ErrorResponse(cause.message ?: "Unauthorized"))
         }
         exception<ForbiddenException> { call, cause ->
             log.error("Forbidden: ${cause.message}")
-            call.respond(HttpStatusCode.Forbidden, ErrorResponse(cause.message ?: "Ingen tilgang"))
+            call.respond(HttpStatusCode.Forbidden, ErrorResponse(cause.message ?: "Forbidden"))
         }
         exception<ValidationException> { call, cause ->
             log.error("Validation error: ${cause.message}")

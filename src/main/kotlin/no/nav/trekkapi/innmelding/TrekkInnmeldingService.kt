@@ -13,30 +13,32 @@ class TrekkInnmeldingService(
     val innrapporteringRepository: TrekkInnmeldingRepository,
     val trekkInnmeldingModel: TrekkInnmeldingModel = TrekkInnmeldingModel(),
     val jmSclient: JmsClient = JmsClient(trekkopplysningMq),
-    val queue: String = trekkopplysningMq.queue
+    val queue: String = trekkopplysningMq.queue,
+    val useMq: Boolean = getEnvVar("USE_MQ", "false").toBoolean(),
 ) {
-    suspend fun alreadyRegistered(orgnr: String, id: String): Boolean {
-        return innrapporteringRepository.findNewestStatus(orgnr, id) != null
-    }
+    suspend fun alreadyRegistered(
+        orgnr: String,
+        id: String,
+    ): Boolean = innrapporteringRepository.findNewestStatus(orgnr, id) != null
 
-    suspend fun getStatus(orgnr: String, id: String): MessageStatus? {
-        return innrapporteringRepository.findNewestStatus(orgnr, id)
-    }
+    suspend fun getStatus(
+        orgnr: String,
+        id: String,
+    ): MessageStatus? = innrapporteringRepository.findNewestStatus(orgnr, id)
 
-    suspend fun register(orgnr: String, idempotencyKeyValue: String, body: String): String {
+    suspend fun register(orgnr: String, idempotencyKeyValue: String, body: String,): String {
         innrapporteringRepository.findByIdempotencyKey(orgnr, idempotencyKeyValue)?.let { return it }
-
         val id: String = Uuid.random().toString()
         register(orgnr, id, idempotencyKeyValue, body)
         return id
     }
 
-    suspend fun register(orgnr: String, id: String, idempotencyKeyValue: String, body: String) {
-        val fellesFormat = trekkInnmeldingModel.buildTrekkInnmelding_FellesFormat(orgnr, id, body)
+    suspend fun register(orgnr: String, id: String, idempotencyKeyValue: String, body: String,
+    ) {
+        val fellesFormat = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, body)
         val messageBody = marshalTrekkopplysning(fellesFormat)
 
-        val doSend = getEnvVar("USE_MQ", "false").toBoolean()
-        if (doSend) {
+        if (useMq) {
             log.debug("Sending in trekkopplysning with body: $messageBody")
             jmSclient.sendMessage(queue, messageBody)
         } else {

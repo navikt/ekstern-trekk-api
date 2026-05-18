@@ -3,7 +3,7 @@ package no.nav.trekkapi.persistence
 import com.zaxxer.hikari.HikariConfig
 import kotlinx.coroutines.runBlocking
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -17,7 +17,6 @@ import kotlin.test.assertNull
 // Alternativet er å flytte Before/AfterAll funksjonenw til et companion object
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrekkInnmeldingRepositoryTest {
-
     lateinit var dbContainer: PostgreSQLContainer
     lateinit var db: Database
 
@@ -42,7 +41,7 @@ class TrekkInnmeldingRepositoryTest {
         val orgnr = "123451111"
         val id = "theIdOfTheInsertedRecord"
         val idempotencyKey = "550e8400-e29b-41d4-a716-446655440000"
-        newSuspendedTransaction {
+        suspendTransaction {
             repo.register(orgnr, id, idempotencyKey)
             val status = repo.findNewestStatus(orgnr, id)
             assertEquals(MessageStatusEnum.PENDING, status!!.status)
@@ -83,67 +82,70 @@ class TrekkInnmeldingRepositoryTest {
     }
 
     @Test
-    fun `Verify registerAcceptedResponse() and findNewestStatus()`() = runBlocking {
-        val repo = TrekkInnmeldingRepository(db)
-        val orgnr = "123456789"
-        val id = "theIdOfTheInsertedRecord"
-        newSuspendedTransaction {
-            repo.register(orgnr, id, "550e8400-e29b-41d4-a716-446655440002")
-            repo.registerResponse("123456789", "theIdOfTheInsertedRecord", true)
-            val status = repo.findNewestStatus(orgnr, id)
-            assertEquals(MessageStatusEnum.ACCEPTED, status!!.status)
-            assertEquals(id, status.id)
-            assertNotNull(status.submittedAt)
-            assertNotNull(status.updatedAt)
-            exec("SELECT * FROM message_status") { rs ->
-                rs.next()
-                assertEquals("123456789", rs.getString("org_nr"))
-                assertEquals("theIdOfTheInsertedRecord", rs.getString("message_id"))
-                assertNotNull(rs.getTimestamp("processed_at"))
-                assertEquals("ACCEPTED", rs.getString("latest_status"))
-                assertNotNull(rs.getTimestamp("response_at"))
-                assertNull(rs.getString("response_description"))
+    fun `Verify registerAcceptedResponse() and findNewestStatus()`() =
+        runBlocking {
+            val repo = TrekkInnmeldingRepository(db)
+            val orgnr = "123456789"
+            val id = "theIdOfTheInsertedRecord"
+            suspendTransaction {
+                repo.register(orgnr, id, "550e8400-e29b-41d4-a716-446655440002")
+                repo.registerResponse("123456789", "theIdOfTheInsertedRecord", true)
+                val status = repo.findNewestStatus(orgnr, id)
+                assertEquals(MessageStatusEnum.ACCEPTED, status!!.status)
+                assertEquals(id, status.id)
+                assertNotNull(status.submittedAt)
+                assertNotNull(status.updatedAt)
+                exec("SELECT * FROM message_status") { rs ->
+                    rs.next()
+                    assertEquals("123456789", rs.getString("org_nr"))
+                    assertEquals("theIdOfTheInsertedRecord", rs.getString("message_id"))
+                    assertNotNull(rs.getTimestamp("processed_at"))
+                    assertEquals("ACCEPTED", rs.getString("latest_status"))
+                    assertNotNull(rs.getTimestamp("response_at"))
+                    assertNull(rs.getString("response_description"))
+                }
+                rollback()
             }
-            rollback()
         }
-    }
 
     @Test
-    fun `Verify registerRejectedResponse() and findNewestStatus()`() = runBlocking {
-        val repo = TrekkInnmeldingRepository(db)
-        val orgnr = "123456789"
-        val id = "theIdOfTheInsertedRecord"
-        newSuspendedTransaction {
-            repo.register(orgnr, id, "550e8400-e29b-41d4-a716-446655440003")
-            repo.registerResponse("123456789", "theIdOfTheInsertedRecord", false, "Avvist av test", "TEST_CODE")
-            val status = repo.findNewestStatus(orgnr, id)
-            assertEquals(MessageStatusEnum.REJECTED, status!!.status)
-            assertEquals(id, status.id)
-            assertNotNull(status.submittedAt)
-            assertNotNull(status.updatedAt)
-            assertEquals("Avvist av test", status.rejectionDescription)
-            assertEquals("TEST_CODE", status.rejectionCode)
-            exec("SELECT * FROM message_status") { rs ->
-                rs.next()
-                assertEquals("123456789", rs.getString("org_nr"))
-                assertEquals("theIdOfTheInsertedRecord", rs.getString("message_id"))
-                assertNotNull(rs.getTimestamp("processed_at"))
-                assertEquals("REJECTED", rs.getString("latest_status"))
-                assertNotNull(rs.getTimestamp("response_at"))
-                assertEquals("Avvist av test", rs.getString("response_description"))
-                assertEquals("TEST_CODE", rs.getString("response_code"))
+    fun `Verify registerRejectedResponse() and findNewestStatus()`() =
+        runBlocking {
+            val repo = TrekkInnmeldingRepository(db)
+            val orgnr = "123456789"
+            val id = "theIdOfTheInsertedRecord"
+            suspendTransaction {
+                repo.register(orgnr, id, "550e8400-e29b-41d4-a716-446655440003")
+                repo.registerResponse("123456789", "theIdOfTheInsertedRecord", false, "Avvist av test", "TEST_CODE")
+                val status = repo.findNewestStatus(orgnr, id)
+                assertEquals(MessageStatusEnum.REJECTED, status!!.status)
+                assertEquals(id, status.id)
+                assertNotNull(status.submittedAt)
+                assertNotNull(status.updatedAt)
+                assertEquals("Avvist av test", status.rejectionDescription)
+                assertEquals("TEST_CODE", status.rejectionCode)
+                exec("SELECT * FROM message_status") { rs ->
+                    rs.next()
+                    assertEquals("123456789", rs.getString("org_nr"))
+                    assertEquals("theIdOfTheInsertedRecord", rs.getString("message_id"))
+                    assertNotNull(rs.getTimestamp("processed_at"))
+                    assertEquals("REJECTED", rs.getString("latest_status"))
+                    assertNotNull(rs.getTimestamp("response_at"))
+                    assertEquals("Avvist av test", rs.getString("response_description"))
+                    assertEquals("TEST_CODE", rs.getString("response_code"))
+                }
+                rollback()
             }
-            rollback()
         }
-    }
 }
 
 fun PostgreSQLContainer.testConfiguration(user: String = "admin"): HikariConfig {
-    val (username, password) = when (user) {
-        "admin" -> this@testConfiguration.username to this@testConfiguration.password
-        "user" -> "$MESSAGE_STATUS_DB_NAME-user" to "app_pass"
-        else -> error("Unsupported user: $user")
-    }
+    val (username, password) =
+        when (user) {
+            "admin" -> this@testConfiguration.username to this@testConfiguration.password
+            "user" -> "$MESSAGE_STATUS_DB_NAME-user" to "app_pass"
+            else -> error("Unsupported user: $user")
+        }
     return HikariConfig().apply {
         jdbcUrl = this@testConfiguration.jdbcUrl
         this.username = username
@@ -157,12 +159,11 @@ fun PostgreSQLContainer.testConfiguration(user: String = "admin"): HikariConfig 
     }
 }
 
-fun buildDatabaseContainer(): PostgreSQLContainer {
-    return PostgreSQLContainer("postgres:15").apply {
+fun buildDatabaseContainer(): PostgreSQLContainer =
+    PostgreSQLContainer("postgres:15").apply {
         withInitScript("init_roles.sql")
         withUsername("$MESSAGE_STATUS_DB_NAME-admin")
         withReuse(true)
         withLabel("app-name", "ekstern-trekk-api")
         start()
     }
-}

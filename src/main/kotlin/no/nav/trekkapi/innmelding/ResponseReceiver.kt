@@ -19,7 +19,7 @@ suspend fun startResponseReceiver(
     topic: String,
     groupId: String,
     trekkInnmeldingModel: TrekkInnmeldingModel,
-    trekkInnmeldingRepository: TrekkInnmeldingRepository
+    trekkInnmeldingRepository: TrekkInnmeldingRepository,
 ) {
     val config = config()
     log.info("Starting response receiver on topic $topic")
@@ -31,14 +31,14 @@ suspend fun startResponseReceiver(
             groupId = groupId,
             autoOffsetReset = AutoOffsetReset.Latest,
             pollTimeout = 10.seconds,
-            properties = config.kafka.toProperties()
+            properties = config.kafka.toProperties(),
         )
 
     KafkaReceiver(receiverSettings)
         .receive(topic)
         .map { record ->
             log.debug("Processing record: {}", record)
-            val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponse_FellesFormat(record.value())
+            val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponseAsFellesFormat(record.value())
             val (orgnummer, meldingsid) = trekkInnmeldingModel.orgnrOgMeldingsId(fellesFormat)
             val isAccepted = trekkInnmeldingModel.isAccepted(fellesFormat)
             if (isAccepted) {
@@ -50,7 +50,9 @@ suspend fun startResponseReceiver(
                     val beskrivelse = trekkInnmeldingModel.getRejectionDescription(fellesFormat)
                     val kode = trekkInnmeldingModel.getRejectionCode(fellesFormat)
                     trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, false, beskrivelse, kode)
-                    log.info("Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: avvist, beskrivelse: $beskrivelse")
+                    log.info(
+                        "Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: avvist, beskrivelse: $beskrivelse",
+                    )
                 } else {
                     log.error("Ukjent status for trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid")
                 }

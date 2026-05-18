@@ -7,7 +7,9 @@ import java.io.StringWriter
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.XMLStreamWriter
 
-class XmlMarshaller(jaxbContext: JAXBContext) {
+class XmlMarshaller(
+    jaxbContext: JAXBContext,
+) {
     private val marshaller = jaxbContext.createMarshaller()
     private val unmarshaller = jaxbContext.createUnmarshaller()
     private val marshallingMonitor = Any()
@@ -21,32 +23,37 @@ class XmlMarshaller(jaxbContext: JAXBContext) {
         return writer.toString()
     }
 
-    fun marshal(objekt: Any, xmlStreamWriter: XMLStreamWriter) {
+    fun marshal(
+        objekt: Any,
+        xmlStreamWriter: XMLStreamWriter,
+    ) {
         synchronized(marshallingMonitor) {
             marshaller.marshal(objekt, xmlStreamWriter)
         }
     }
 
-    fun toDomainObject(any: Any): Any {
-        return synchronized(unmarshallingMonitor) {
+    fun toDomainObject(any: Any): Any =
+        synchronized(unmarshallingMonitor) {
             unmarshaller.unmarshal(any as Node)
         }
-    }
 
-    fun marshalToByteArray(objekt: Any): ByteArray {
-        return ByteArrayOutputStream().use {
+    fun marshalToByteArray(objekt: Any): ByteArray =
+        ByteArrayOutputStream().use {
             synchronized(marshallingMonitor) {
                 marshaller.marshal(objekt, it)
             }
             it.toByteArray()
         }
-    }
 
-    fun <T> unmarshal(xml: String, clazz: Class<T>): T {
-        val factory = XMLInputFactory.newInstance().apply {
-            setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false)
-            setProperty(XMLInputFactory.SUPPORT_DTD, false)
-        }
+    fun <T> unmarshal(
+        xml: String,
+        clazz: Class<T>,
+    ): T {
+        val factory =
+            XMLInputFactory.newInstance().apply {
+                setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false)
+                setProperty(XMLInputFactory.SUPPORT_DTD, false)
+            }
         val reader = factory.createXMLStreamReader(xml.reader())
         return synchronized(unmarshallingMonitor) {
             unmarshaller.unmarshal(reader, clazz).value

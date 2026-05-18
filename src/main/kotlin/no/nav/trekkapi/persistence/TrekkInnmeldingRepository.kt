@@ -17,10 +17,12 @@ import no.nav.trekkapi.persistence.table.MessageStatusTable.responseCode
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseDescription
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseReceivedAt
 import no.nav.trekkapi.util.nowOsloToInstant
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insertIgnore
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -30,7 +32,13 @@ class TrekkInnmeldingRepository(private val database: Database) {
         insert(orgnr, id, idempotencyKeyValue = idempotencyKeyValue)
     }
 
-    suspend fun registerResponse(orgnr: String, id: String, akseptert: Boolean, beskrivelse: String? = null, kode: String? = null) {
+    suspend fun registerResponse(
+        orgnr: String,
+        id: String,
+        akseptert: Boolean,
+        beskrivelse: String? = null,
+        kode: String? = null,
+    ) {
         val status = if (akseptert) MessageStatusEnum.ACCEPTED else MessageStatusEnum.REJECTED
         update(orgnr, id, status, description = beskrivelse, code = kode)
     }
@@ -45,18 +53,29 @@ class TrekkInnmeldingRepository(private val database: Database) {
         }
     }
 
-    suspend fun findNewestStatus(orgnr: String, id: String): MessageStatus? {
+    suspend fun findNewestStatus(
+        orgnr: String,
+        id: String,
+    ): MessageStatus? {
         val row: MessageStatusRow = findStatus(orgnr, id) ?: return null
         return when (row.latestStatus) {
             MessageStatusEnum.PENDING -> pending(row.messageId, row.processedAt)
             MessageStatusEnum.ACCEPTED -> accepted(row.messageId, row.processedAt, row.responseReceivedAt!!)
-            MessageStatusEnum.REJECTED -> rejected(row.messageId, row.processedAt, row.responseReceivedAt!!, row.responseDescription!!, row.responseCode)
+            MessageStatusEnum.REJECTED ->
+                rejected(
+                    row.messageId,
+                    row.processedAt,
+                    row.responseReceivedAt!!,
+                    row.responseDescription!!,
+                    row.responseCode,
+                )
         }
     }
 
-    private suspend fun findStatus(orgnr: String, id: String): MessageStatusRow? {
-        return get(orgnr, id)
-    }
+    private suspend fun findStatus(
+        orgnr: String,
+        id: String,
+    ): MessageStatusRow? = get(orgnr, id)
 
     suspend fun insert(orgnr: String, id: String, now: Instant = nowOsloToInstant().truncatedTo(ChronoUnit.MICROS), idempotencyKeyValue: String): Boolean = withContext(Dispatchers.IO) {
         transaction(database.db) {
@@ -76,20 +95,22 @@ class TrekkInnmeldingRepository(private val database: Database) {
         status: MessageStatusEnum,
         datetime: Instant = nowOsloToInstant().truncatedTo(ChronoUnit.MICROS),
         description: String?,
-        code: String? = null
-    ): Boolean = withContext(Dispatchers.IO) {
-        transaction(database.db) {
-            val updatedRows = MessageStatusTable.update({
-                (messageId eq id) and (orgNr eq orgnr)
-            }) {
-                it[latestStatus] = status
-                it[responseReceivedAt] = datetime
-                it[responseDescription] = description
-                it[responseCode] = code
+        code: String? = null,
+    ): Boolean =
+        withContext(Dispatchers.IO) {
+            transaction(database.db) {
+                val updatedRows =
+                    MessageStatusTable.update({
+                        (messageId eq id) and (orgNr eq orgnr)
+                    }) {
+                        it[latestStatus] = status
+                        it[responseReceivedAt] = datetime
+                        it[responseDescription] = description
+                        it[responseCode] = code
+                    }
+                updatedRows == 1
             }
-            updatedRows == 1
         }
-    }
 
     suspend fun get(orgnr: String, id: String): MessageStatusRow? = withContext(Dispatchers.IO) {
         transaction(database.db) {
@@ -110,5 +131,4 @@ class TrekkInnmeldingRepository(private val database: Database) {
                 }
                 .singleOrNull()
         }
-    }
 }

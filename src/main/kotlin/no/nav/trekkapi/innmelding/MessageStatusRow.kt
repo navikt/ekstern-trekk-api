@@ -11,5 +11,5 @@ data class MessageStatusRow(
     val responseReceivedAt: Instant?,
     val responseDescription: String?,
     val responseCode: String?,
-    val idempotencyKey: String
+    val idempotencyKey: String,
 )

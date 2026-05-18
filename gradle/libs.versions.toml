@@ -1,5 +1,5 @@
 [versions]
-exposed = "0.61.0"
+exposed = "1.2.0"
 ktor = "3.4.3"
 hoplite = "2.9.0"
 arrow = "2.2.2.1"
@@ -7,11 +7,11 @@ emottak-xsd = "0.0.12"
 kotlin-kafka = "0.4.1"
 logback = "1.5.32"
 logstash = "9.0"
-prometheus = "1.12.4"
+prometheus = "1.16.5"
 token-validation-ktor = "6.0.7"
 postgresql = "42.7.11"
 hikari = "7.0.2"
-flyway = "12.5.0"
+flyway = "12.6.0"
 ibm-mq = "9.4.0.0"
 
 [libraries]

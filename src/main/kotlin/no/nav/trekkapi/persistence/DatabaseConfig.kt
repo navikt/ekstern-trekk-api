@@ -17,16 +17,17 @@ fun configure(role: String): HikariConfig {
     val maxPoolSizeForUser = config.database.maxConnectionPoolSizeForUser.value
     val maxPoolSizeForAdmin = config.database.maxConnectionPoolSizeForAdmin.value
 
-    val hikariConfig = HikariConfig().apply {
-        jdbcUrl = config.database.jdbcUrl
-        driverClassName = "org.postgresql.Driver"
-        this.username = config.database.jdbcUser
-        this.password = config.database.jdbcPassword
-        this.maximumPoolSize = maxPoolSizeForUser
-        if (role == "admin") {
-            this.maximumPoolSize = maxPoolSizeForAdmin
+    val hikariConfig =
+        HikariConfig().apply {
+            jdbcUrl = config.database.jdbcUrl
+            driverClassName = "org.postgresql.Driver"
+            this.username = config.database.jdbcUser
+            this.password = config.database.jdbcPassword
+            this.maximumPoolSize = maxPoolSizeForUser
+            if (role == "admin") {
+                this.maximumPoolSize = maxPoolSizeForAdmin
+            }
         }
-    }
 
     return hikariConfig
 }

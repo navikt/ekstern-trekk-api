@@ -14,28 +14,41 @@ data class MessageStatus(
     @Serializable(with = InstantSerializer::class)
     val updatedAt: Instant,
     val rejectionDescription: String? = null,
-    val rejectionCode: String? = null
+    val rejectionCode: String? = null,
 )
 
-fun pending(id: String, submittedAt: Instant) = MessageStatus(
+fun pending(
+    id: String,
+    submittedAt: Instant,
+) = MessageStatus(
     id = id,
     status = MessageStatusEnum.PENDING,
     submittedAt = submittedAt,
-    updatedAt = submittedAt
+    updatedAt = submittedAt,
 )
 
-fun accepted(id: String, submittedAt: Instant, receivedAt: Instant) = MessageStatus(
+fun accepted(
+    id: String,
+    submittedAt: Instant,
+    receivedAt: Instant,
+) = MessageStatus(
     id = id,
     status = MessageStatusEnum.ACCEPTED,
     submittedAt = submittedAt,
-    updatedAt = receivedAt
+    updatedAt = receivedAt,
 )
 
-fun rejected(id: String, submittedAt: Instant, receivedAt: Instant, description: String, code: String? = null) = MessageStatus(
+fun rejected(
+    id: String,
+    submittedAt: Instant,
+    receivedAt: Instant,
+    description: String,
+    code: String? = null,
+) = MessageStatus(
     id = id,
     status = MessageStatusEnum.REJECTED,
     submittedAt = submittedAt,
     updatedAt = receivedAt,
     rejectionDescription = description,
-    rejectionCode = code
+    rejectionCode = code,
 )

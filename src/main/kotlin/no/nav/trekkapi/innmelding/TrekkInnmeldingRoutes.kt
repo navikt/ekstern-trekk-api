@@ -14,6 +14,7 @@ import no.kith.xmlstds.msghead._2006_05_24.MsgHead
 import no.nav.trekkapi.auth.orgNrFromTokenValidationContext
 import no.nav.trekkapi.fellesformat.unmarshal
 import no.nav.trekkapi.log
+import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.plugin.UnauthorizedException
 import no.nav.trekkapi.plugin.ValidationException
 import java.io.InputStream
@@ -22,9 +23,7 @@ import kotlin.uuid.Uuid
 
 // todo lag test for denne, hvis vi får til maskinporten mock
 
-fun Route.innmeldingRoutes(
-    trekkInnmeldingService: TrekkInnmeldingService
-) {
+fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
     post("/v1/innrapportering") {
         log.debug("Innrapportering kalt")
         val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
@@ -39,6 +38,7 @@ fun Route.innmeldingRoutes(
         val id = trekkInnmeldingService.register(orgnr, idempotencyKeyValue, innmeldingXml)
         log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
         call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
+        call.response.header(HttpHeaders.RetryAfter, "10")
         call.respond(HttpStatusCode.Accepted)
     }
 
@@ -47,20 +47,22 @@ fun Route.innmeldingRoutes(
         log.debug("Hent innrapporteringstatus kalt med id: $id")
         val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
 
-        val status = trekkInnmeldingService.getStatus(orgnr, id)
-            ?: throw NotFoundException("Finnes ingen status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
+        val status =
+            trekkInnmeldingService.getStatus(orgnr, id)
+                ?: throw NotFoundException("No message found with the given ID")
         log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
+        if (status.status == MessageStatusEnum.PENDING) {
+            call.response.header(HttpHeaders.RetryAfter, "10")
+        }
         call.respond(HttpStatusCode.OK, status)
     }
 }
 
 private fun String.validateInnmeldingXML() =
     runCatching { unmarshal(this, MsgHead::class.java) }
-        .onFailure { throw ValidationException("Ugyldig XML-format", it) }
+        .onFailure { throw ValidationException("Invalid XML format", it) }
 
-fun Route.testRoutes(
-    trekkInnmeldingService: TrekkInnmeldingService
-) {
+fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
     // TESTVERSJON av POST hvor ID genereres, ingen auth, og body leses fra testfil
     get("/test/putinnrapportering") {
         log.debug("TEST-Innrapportering kalt")

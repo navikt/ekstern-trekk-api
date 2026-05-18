@@ -8,7 +8,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TrekkInnmeldingModelTest {
-
     @Test
     fun `Build FellesFormat produces expected object`() {
         val orgnr = "123456789"
@@ -17,7 +16,7 @@ class TrekkInnmeldingModelTest {
         val payload = this::class.java.getResource("/trekkopplysning_innmelding.xml")?.readText() ?: ""
 
         val trekkInnmeldingModel = TrekkInnmeldingModel()
-        val result = trekkInnmeldingModel.buildTrekkInnmelding_FellesFormat(orgnr, id, payload)
+        val result = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, payload)
 
         assertEquals(expectedId, result.mottakenhetBlokk.ediLoggId, "ediLoggId")
         assertEquals("Trekkopplysning", result.mottakenhetBlokk.ebService, "ebService")
@@ -34,7 +33,9 @@ class TrekkInnmeldingModelTest {
 
         assertEquals(1, result.msgHead.document.size, "payload documents")
         val document = result.msgHead.document.get(0)
-        val mainElement: Element = document.refDoc.content.any.get(0) as Element
+        val mainElement: Element =
+            document.refDoc.content.any
+                .get(0) as Element
         assertEquals("SV:Innrapportering av trekk til NAV", document.contentDescription, "payload contentDescription")
         assertEquals("InnrapporteringTrekk", mainElement.tagName, "main XML element name")
     }
@@ -47,7 +48,7 @@ class TrekkInnmeldingModelTest {
         val payload = this::class.java.getResource("/trekkopplysning_innmelding.xml")?.readText() ?: ""
 
         val trekkInnmeldingModel = TrekkInnmeldingModel()
-        val fellesformat = trekkInnmeldingModel.buildTrekkInnmelding_FellesFormat(orgnr, id, payload, timestamp = timestamp)
+        val fellesformat = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, payload, timestamp = timestamp)
         val message = marshalTrekkopplysning(fellesformat)
 
         val expectedProlog = """
@@ -69,7 +70,7 @@ class TrekkInnmeldingModelTest {
         val respons = this::class.java.getResource("/trekkopplysning_respons_avvist_duplikat.xml")?.readText() ?: ""
 
         val trekkInnmeldingModel = TrekkInnmeldingModel()
-        val result = trekkInnmeldingModel.parseTrekkInnmeldingResponse_FellesFormat(respons.toByteArray())
+        val result = trekkInnmeldingModel.parseTrekkInnmeldingResponseAsFellesFormat(respons.toByteArray())
 
         assertEquals("69abb69f-b491-4d34-aeb1-10c02c7b98b6", result.mottakenhetBlokk.ediLoggId, "ediLoggId")
         assertEquals("Trekkopplysning", result.mottakenhetBlokk.ebService, "ebService")

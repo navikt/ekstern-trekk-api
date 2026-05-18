@@ -9,8 +9,8 @@ import arrow.core.raise.result
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
 import io.ktor.server.netty.Netty
-import io.micrometer.prometheus.PrometheusConfig
-import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
@@ -25,15 +25,16 @@ import org.slf4j.LoggerFactory
 
 val log = LoggerFactory.getLogger("no.nav.emottak.ebms.async.LocalApp")
 
-fun main(args: Array<String>) = SuspendApp {
-    log.info("--- Starting LOCAL application")
-    result {
-        resourceScope {
-            runServer()
-            awaitCancellation()
+fun main(args: Array<String>) =
+    SuspendApp {
+        log.info("--- Starting LOCAL application")
+        result {
+            resourceScope {
+                runServer()
+                awaitCancellation()
+            }
         }
     }
-}
 
 suspend fun ResourceScope.runServer() {
     /*
@@ -69,7 +70,7 @@ suspend fun ResourceScope.runServer() {
         factory = Netty,
         port = serverConfig.port.value,
         preWait = serverConfig.preWait,
-        module = trekkapiModule(trekkInnmeldingService, prometheusMeterRegistry)
+        module = trekkapiModule(trekkInnmeldingService, prometheusMeterRegistry),
     )
 
     println(" ************ Starting response receiver ")
@@ -82,7 +83,7 @@ suspend fun ResourceScope.runServer() {
                 config.kafkaResponseQueue.topic,
                 config.kafka.groupId,
                 trekkInnmeldingModel,
-                trekkInnmeldingRepository
+                trekkInnmeldingRepository,
             )
         }
     }

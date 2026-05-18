@@ -16,7 +16,7 @@ spec:
           separator: "/"
           name: "trekkopplysning/innmelding"
           consumers:
-            - orgno: "123456789"
+            - orgno: "929447395"
   webproxy: true
   image: {{image}}
   liveness:
