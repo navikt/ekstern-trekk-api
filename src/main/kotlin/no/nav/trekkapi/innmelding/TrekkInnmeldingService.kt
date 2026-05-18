@@ -26,14 +26,22 @@ class TrekkInnmeldingService(
         id: String,
     ): MessageStatus? = innrapporteringRepository.findNewestStatus(orgnr, id)
 
-    suspend fun register(orgnr: String, idempotencyKeyValue: String, body: String,): String {
+    suspend fun register(
+        orgnr: String,
+        idempotencyKeyValue: String,
+        body: String,
+    ): String {
         innrapporteringRepository.findByIdempotencyKey(orgnr, idempotencyKeyValue)?.let { return it }
         val id: String = Uuid.random().toString()
         register(orgnr, id, idempotencyKeyValue, body)
         return id
     }
 
-    suspend fun register(orgnr: String, id: String, idempotencyKeyValue: String, body: String,
+    suspend fun register(
+        orgnr: String,
+        id: String,
+        idempotencyKeyValue: String,
+        body: String,
     ) {
         val fellesFormat = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, body)
         val messageBody = marshalTrekkopplysning(fellesFormat)

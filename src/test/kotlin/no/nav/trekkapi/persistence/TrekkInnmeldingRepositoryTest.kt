@@ -36,50 +36,52 @@ class TrekkInnmeldingRepositoryTest {
     }
 
     @Test
-    fun `Verify register() and findNewestStatus()`() = runBlocking {
-        val repo = TrekkInnmeldingRepository(db)
-        val orgnr = "123451111"
-        val id = "theIdOfTheInsertedRecord"
-        val idempotencyKey = "550e8400-e29b-41d4-a716-446655440000"
-        suspendTransaction {
-            repo.register(orgnr, id, idempotencyKey)
-            val status = repo.findNewestStatus(orgnr, id)
-            assertEquals(MessageStatusEnum.PENDING, status!!.status)
-            assertEquals(id, status.id)
-            assertNotNull(status.submittedAt)
-            assertEquals(status.submittedAt, status.updatedAt)
-            exec("SELECT count(*) FROM message_status") { rs ->
-                rs.next()
-                assertEquals(1, rs.getInt(1))
+    fun `Verify register() and findNewestStatus()`() =
+        runBlocking {
+            val repo = TrekkInnmeldingRepository(db)
+            val orgnr = "123451111"
+            val id = "theIdOfTheInsertedRecord"
+            val idempotencyKey = "550e8400-e29b-41d4-a716-446655440000"
+            suspendTransaction {
+                repo.register(orgnr, id, idempotencyKey)
+                val status = repo.findNewestStatus(orgnr, id)
+                assertEquals(MessageStatusEnum.PENDING, status!!.status)
+                assertEquals(id, status.id)
+                assertNotNull(status.submittedAt)
+                assertEquals(status.submittedAt, status.updatedAt)
+                exec("SELECT count(*) FROM message_status") { rs ->
+                    rs.next()
+                    assertEquals(1, rs.getInt(1))
+                }
+                exec("SELECT * FROM message_status") { rs ->
+                    rs.next()
+                    assertEquals("123451111", rs.getString("org_nr"))
+                    assertEquals("theIdOfTheInsertedRecord", rs.getString("message_id"))
+                    assertNotNull(rs.getTimestamp("processed_at"))
+                    assertEquals("PENDING", rs.getString("latest_status"))
+                    assertNull(rs.getTimestamp("response_at"))
+                    assertNull(rs.getString("response_description"))
+                    assertEquals(idempotencyKey, rs.getString("idempotency_key"))
+                }
+                rollback()
             }
-            exec("SELECT * FROM message_status") { rs ->
-                rs.next()
-                assertEquals("123451111", rs.getString("org_nr"))
-                assertEquals("theIdOfTheInsertedRecord", rs.getString("message_id"))
-                assertNotNull(rs.getTimestamp("processed_at"))
-                assertEquals("PENDING", rs.getString("latest_status"))
-                assertNull(rs.getTimestamp("response_at"))
-                assertNull(rs.getString("response_description"))
-                assertEquals(idempotencyKey, rs.getString("idempotency_key"))
-            }
-            rollback()
         }
-    }
 
     @Test
-    fun `Verify findByIdempotencyKey() returns existing message id`() = runBlocking {
-        val repo = TrekkInnmeldingRepository(db)
-        val orgnr = "123451111"
-        val id = "theIdOfTheInsertedRecord"
-        val idempotencyKey = "550e8400-e29b-41d4-a716-446655440001"
-        newSuspendedTransaction {
-            repo.register(orgnr, id, idempotencyKey)
-            assertEquals(id, repo.findByIdempotencyKey(orgnr, idempotencyKey))
-            assertNull(repo.findByIdempotencyKey(orgnr, "00000000-0000-0000-0000-000000000000"))
-            assertNull(repo.findByIdempotencyKey("999999999", idempotencyKey))
-            rollback()
+    fun `Verify findByIdempotencyKey() returns existing message id`() =
+        runBlocking {
+            val repo = TrekkInnmeldingRepository(db)
+            val orgnr = "123451111"
+            val id = "theIdOfTheInsertedRecord"
+            val idempotencyKey = "550e8400-e29b-41d4-a716-446655440001"
+            suspendTransaction {
+                repo.register(orgnr, id, idempotencyKey)
+                assertEquals(id, repo.findByIdempotencyKey(orgnr, idempotencyKey))
+                assertNull(repo.findByIdempotencyKey(orgnr, "00000000-0000-0000-0000-000000000000"))
+                assertNull(repo.findByIdempotencyKey("999999999", idempotencyKey))
+                rollback()
+            }
         }
-    }
 
     @Test
     fun `Verify registerAcceptedResponse() and findNewestStatus()`() =

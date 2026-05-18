@@ -28,8 +28,12 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         log.debug("Innrapportering kalt")
         val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
 
-        val idempotencyKeyValue = call.request.headers["Idempotency-Key"]
-            ?: throw ValidationException("Idempotency-Key header er påkrevd", IllegalArgumentException("Missing Idempotency-Key header"))
+        val idempotencyKeyValue =
+            call.request.headers["Idempotency-Key"]
+                ?: throw ValidationException(
+                    "Idempotency-Key header er påkrevd",
+                    IllegalArgumentException("Missing Idempotency-Key header"),
+                )
         runCatching { Uuid.parse(idempotencyKeyValue) }
             .onFailure { throw ValidationException("Idempotency-Key må være en gyldig UUID (RFC 4122)", it) }
 
