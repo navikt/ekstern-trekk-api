@@ -12,7 +12,7 @@ token-validation-ktor = "6.0.7"
 postgresql = "42.7.11"
 hikari = "7.0.2"
 flyway = "12.6.1"
-ibm-mq = "9.4.0.0"
+ibm-mq = "9.4.5.1"
 
 [libraries]
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
