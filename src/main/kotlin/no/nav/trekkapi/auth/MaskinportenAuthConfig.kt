@@ -24,7 +24,7 @@ fun getInnmeldingConfig(): TokenSupportConfig =
             // "https://test.maskinporten.no/.well-known/oauth-authorization-server"
             discoveryUrl = getEnvVar("MASKINPORTEN_WELL_KNOWN_URL", "http://localhost:3344/AZURE_AD/.well-known/openid-configuration"),
             acceptedAudience = listOf(SCOPE_INNMELDING),
-            optionalClaims = listOf("aud", "sub"),
+            // optionalClaims = listOf("aud", "sub"),
         ),
     )
 
@@ -39,8 +39,8 @@ suspend fun RoutingContext.orgNrFromTokenValidationContext(): String? {
     log.debug("### Claims for $MASKINPORTEN_AUTH_INNMELDING: $claims")
     val consumer = claims?.get("consumer") as Map<*, *>
     log.debug("### Claim 'consumer': $consumer")
-    val sub = claims?.get("sub") as Map<*, *>
-    log.debug("### Claim 'sub': $sub")
+    // val sub = claims?.get("sub") as Map<*, *>
+    // log.debug("### Claim 'sub': $sub")
     val orgnr = consumer.extractOrgnummer()
     log.debug("### Extracted orgnr: $orgnr")
     return orgnr
