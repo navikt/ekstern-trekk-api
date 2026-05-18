@@ -39,8 +39,8 @@ suspend fun RoutingContext.orgNrFromTokenValidationContext(): String? {
     log.debug("### Claims for $MASKINPORTEN_AUTH_INNMELDING: $claims")
     val consumer = claims?.get("consumer") as Map<*, *>
     log.debug("### Claim 'consumer': $consumer")
-    val sub = claims?.get("sub") as Map<*, *>
-    log.debug("### Claim 'sub': $sub")
+    // val sub = claims?.get("sub") as Map<*, *>
+    // log.debug("### Claim 'sub': $sub")
     val orgnr = consumer.extractOrgnummer()
     log.debug("### Extracted orgnr: $orgnr")
     return orgnr
