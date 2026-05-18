@@ -1,6 +1,6 @@
 [versions]
 exposed = "1.2.0"
-ktor = "3.4.3"
+ktor = "3.5.0"
 hoplite = "2.9.0"
 arrow = "2.2.2.1"
 emottak-xsd = "0.0.12"
