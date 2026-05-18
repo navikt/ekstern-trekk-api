@@ -16,7 +16,10 @@ spec:
           separator: "/"
           name: "trekkopplysning/innmelding"
           consumers:
-            - orgno: "929447395"
+            - name: "Pathfinder" # TEST
+              orgno: "929447395"
+            - name: "Innkrevingsmyndigheten"
+              orgno: "924616733"
   webproxy: true
   image: {{image}}
   liveness:
