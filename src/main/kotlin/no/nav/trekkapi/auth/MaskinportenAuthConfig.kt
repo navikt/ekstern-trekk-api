@@ -24,7 +24,7 @@ fun getInnmeldingConfig(): TokenSupportConfig =
             // "https://test.maskinporten.no/.well-known/oauth-authorization-server"
             discoveryUrl = getEnvVar("MASKINPORTEN_WELL_KNOWN_URL", "http://localhost:3344/AZURE_AD/.well-known/openid-configuration"),
             acceptedAudience = listOf(SCOPE_INNMELDING),
-            // optionalClaims = listOf("aud", "sub"),
+            optionalClaims = listOf("aud", "sub"),
         ),
     )
 
