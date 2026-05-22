@@ -15,6 +15,8 @@ application {
 tasks {
     shadowJar {
         archiveFileName.set("app.jar")
+        mergeServiceFiles()
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
     ktlintFormat {
         this.enabled = true
