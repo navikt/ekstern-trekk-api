@@ -15,6 +15,9 @@ application {
 tasks {
     shadowJar {
         archiveFileName.set("app.jar")
+        mergeServiceFiles()
+        append("META-INF/services/org.flywaydb.core.extensibility.Plugin")
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
     ktlintFormat {
         this.enabled = true
