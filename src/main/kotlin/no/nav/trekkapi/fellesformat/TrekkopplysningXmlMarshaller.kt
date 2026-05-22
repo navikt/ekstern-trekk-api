@@ -1,14 +1,14 @@
 package no.nav.trekkapi.fellesformat
 
-import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.JAXBContext.newInstance
+import no.kith.xmlstds.msghead._2006_05_24.MsgHead
 import no.trygdeetaten.xml.eiff._1.EIFellesformat
 import org.apache.cxf.staxutils.DelegatingXMLStreamWriter
 import java.io.StringWriter
 import javax.xml.stream.XMLOutputFactory
 import javax.xml.stream.XMLStreamWriter
 
-val trekkopplysningXmlMarshaller =
+val fellesformatXmlMarshaller =
     XmlMarshaller(
         newInstance(
             no.trygdeetaten.xml.eiff._1.ObjectFactory::class.java,
@@ -16,35 +16,21 @@ val trekkopplysningXmlMarshaller =
         ),
     )
 
-val FellesFormatXmlMarshaller =
+val msgheadXmlMarshaller =
     XmlMarshaller(
-    /* NB! Forsiktig med å marshalle fagmeldingen.
-        Pga. hardkoding hos klienter kan det brekke selv med GYLDIG XML output (f.eks. elementers/props/attributters rekkefølge),
-        Velger derfor å ikke mate objectfactory for fagmeldingene til FellesFormatMarshalleren fordi vi har ingen
-        garanti for at rekkefølge ikke muteres
-        Bruk heller MessageContentMarshaller om du må ha tak i informasjon fra
-        fagmelding og ikke konverter det objektet tilbake til bytes
-        Bug i prod på dette 17 sept 2025
-     */
-        JAXBContext.newInstance(
-//        org.oasis_open.committees.ebxml_cppa.schema.cpp_cpa_2_0.ObjectFactory::class.java,
-//        org.xmlsoap.schemas.soap.envelope.ObjectFactory::class.java,
-//        org.w3._1999.xlink.ObjectFactory::class.java,
-//        org.w3._2009.xmldsig11_.ObjectFactory::class.java,
-            no.trygdeetaten.xml.eiff._1.ObjectFactory::class.java,
+        newInstance(
             no.kith.xmlstds.msghead._2006_05_24.ObjectFactory::class.java,
         ),
     )
 
-fun <T> unmarshal(
-    xml: String,
-    clazz: Class<T>,
-) = FellesFormatXmlMarshaller.unmarshal(xml, clazz)
+fun String.unmarshalFellesformat(): EIFellesformat = fellesformatXmlMarshaller.unmarshal(this, EIFellesformat::class.java)
+
+fun String.unmarshalMsgHead(): MsgHead = msgheadXmlMarshaller.unmarshal(this, MsgHead::class.java)
 
 fun marshalTrekkopplysning(fellesFormat: EIFellesformat): String {
     val writer = StringWriter()
     val xmlStreamWriter = TrekkopplysningWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(writer))
-    trekkopplysningXmlMarshaller.marshal(fellesFormat, xmlStreamWriter)
+    fellesformatXmlMarshaller.marshal(fellesFormat, xmlStreamWriter)
     return writer.toString()
 }
 

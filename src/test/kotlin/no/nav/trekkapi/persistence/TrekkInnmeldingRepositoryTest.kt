@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.testcontainers.postgresql.PostgreSQLContainer
+import java.util.Base64
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -79,6 +80,7 @@ class TrekkInnmeldingRepositoryTest {
                 assertEquals(id, status.id)
                 assertNotNull(status.submittedAt)
                 assertNotNull(status.updatedAt)
+                assertNull(status.responseXml)
                 exec("SELECT * FROM message_status") { rs ->
                     rs.next()
                     assertEquals("123456789", rs.getString("org_nr"))
@@ -87,6 +89,30 @@ class TrekkInnmeldingRepositoryTest {
                     assertEquals("ACCEPTED", rs.getString("latest_status"))
                     assertNotNull(rs.getTimestamp("response_at"))
                     assertNull(rs.getString("response_description"))
+                    assertNull(rs.getString("response_xml"))
+                }
+                rollback()
+            }
+        }
+
+    @Test
+    fun `Verify registerAcceptedResponse() with xml and findNewestStatus()`() =
+        runBlocking {
+            val repo = TrekkInnmeldingRepository(db)
+            val orgnr = "123456789"
+            val id = "theIdOfTheInsertedRecord"
+            val fagmeldingXml =
+                """<MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24"><MsgInfo><Type V="INNRAPPORTERING_TREKK_RETUR"/></MsgInfo></MsgHead>"""
+            val expectedBase64 = Base64.getEncoder().encodeToString(fagmeldingXml.toByteArray())
+            suspendTransaction {
+                repo.register(orgnr, id)
+                repo.registerResponse(orgnr, id, true, xml = fagmeldingXml)
+                val status = repo.findNewestStatus(orgnr, id)
+                assertEquals(MessageStatusEnum.ACCEPTED, status!!.status)
+                assertEquals(expectedBase64, status.responseXml)
+                exec("SELECT response_xml FROM message_status") { rs ->
+                    rs.next()
+                    assertEquals(fagmeldingXml, rs.getString("response_xml"))
                 }
                 rollback()
             }
@@ -108,6 +134,7 @@ class TrekkInnmeldingRepositoryTest {
                 assertNotNull(status.updatedAt)
                 assertEquals("Avvist av test", status.rejectionDescription)
                 assertEquals("TEST_CODE", status.rejectionCode)
+                assertNull(status.responseXml)
                 exec("SELECT * FROM message_status") { rs ->
                     rs.next()
                     assertEquals("123456789", rs.getString("org_nr"))
@@ -117,6 +144,32 @@ class TrekkInnmeldingRepositoryTest {
                     assertNotNull(rs.getTimestamp("response_at"))
                     assertEquals("Avvist av test", rs.getString("response_description"))
                     assertEquals("TEST_CODE", rs.getString("response_code"))
+                    assertNull(rs.getString("response_xml"))
+                }
+                rollback()
+            }
+        }
+
+    @Test
+    fun `Verify registerRejectedResponse() with xml and findNewestStatus()`() =
+        runBlocking {
+            val repo = TrekkInnmeldingRepository(db)
+            val orgnr = "123456789"
+            val id = "theIdOfTheInsertedRecord"
+            val fagmeldingXml =
+                """<AppRec xmlns="http://www.kith.no/xmlstds/apprec/2004-11-21"><Status V="2" DN="Avvist"/><Error V="B720007F" DN="Avvist av test"/></AppRec>"""
+            val expectedBase64 = Base64.getEncoder().encodeToString(fagmeldingXml.toByteArray())
+            suspendTransaction {
+                repo.register(orgnr, id)
+                repo.registerResponse(orgnr, id, false, "Avvist av test", "TEST_CODE", fagmeldingXml)
+                val status = repo.findNewestStatus(orgnr, id)
+                assertEquals(MessageStatusEnum.REJECTED, status!!.status)
+                assertEquals("Avvist av test", status.rejectionDescription)
+                assertEquals("TEST_CODE", status.rejectionCode)
+                assertEquals(expectedBase64, status.responseXml)
+                exec("SELECT response_xml FROM message_status") { rs ->
+                    rs.next()
+                    assertEquals(fagmeldingXml, rs.getString("response_xml"))
                 }
                 rollback()
             }

@@ -15,6 +15,7 @@ data class MessageStatus(
     val updatedAt: Instant,
     val rejectionDescription: String? = null,
     val rejectionCode: String? = null,
+    val responseXml: String? = null,
 )
 
 fun pending(
@@ -31,11 +32,13 @@ fun accepted(
     id: String,
     submittedAt: Instant,
     receivedAt: Instant,
+    responseXml: String? = null,
 ) = MessageStatus(
     id = id,
     status = MessageStatusEnum.ACCEPTED,
     submittedAt = submittedAt,
     updatedAt = receivedAt,
+    responseXml = responseXml,
 )
 
 fun rejected(
@@ -44,6 +47,7 @@ fun rejected(
     receivedAt: Instant,
     description: String,
     code: String? = null,
+    responseXml: String? = null,
 ) = MessageStatus(
     id = id,
     status = MessageStatusEnum.REJECTED,
@@ -51,4 +55,5 @@ fun rejected(
     updatedAt = receivedAt,
     rejectionDescription = description,
     rejectionCode = code,
+    responseXml = responseXml,
 )

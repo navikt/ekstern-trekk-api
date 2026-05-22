@@ -274,3 +274,10 @@ components:
           type: string
           description: Maskinlesbar kode for avvisningsårsak. Settes kun når status er `REJECTED`.
           example: B720007F
+        responseXml:
+          type: string
+          format: byte
+          description: |
+            Base64-kodet respons som XML.
+            Settes kun når status er `ACCEPTED` eller `REJECTED`.
+          example: PEVJRmVsbGVzZm9ybWF0PjxzdGF0dXM+T0s8L3N0YXR1cz48L0VJRmVsbGVzZm9ybWF0Pg==

@@ -70,7 +70,7 @@ class TrekkInnmeldingModelTest {
         val respons = this::class.java.getResource("/trekkopplysning_respons_avvist_duplikat.xml")?.readText() ?: ""
 
         val trekkInnmeldingModel = TrekkInnmeldingModel()
-        val result = trekkInnmeldingModel.parseTrekkInnmeldingResponseAsFellesFormat(respons.toByteArray())
+        val result = trekkInnmeldingModel.parseTrekkInnmeldingResponseAsFellesFormat(respons)
 
         assertEquals("69abb69f-b491-4d34-aeb1-10c02c7b98b6", result.mottakenhetBlokk.ediLoggId, "ediLoggId")
         assertEquals("Trekkopplysning", result.mottakenhetBlokk.ebService, "ebService")
@@ -91,5 +91,35 @@ class TrekkInnmeldingModelTest {
         assertEquals("B720007F", trekkInnmeldingModel.getRejectionCode(result), "Avvisningskode")
         assertEquals("123456789", trekkInnmeldingModel.orgnrOgMeldingsId(result).first, "DB orgnr")
         assertEquals("69abb69f-b491-4d34-aeb1-10c02c7b98b6", trekkInnmeldingModel.orgnrOgMeldingsId(result).second, "DB id")
+    }
+
+    @Test
+    fun `getFagmeldingXmlFraFellesformat returns AppRec for rejected response`() {
+        val respons = this::class.java.getResource("/trekkopplysning_respons_avvist_duplikat.xml")?.readText() ?: ""
+        val trekkInnmeldingModel = TrekkInnmeldingModel()
+        val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponseAsFellesFormat(respons)
+
+        val innerXml = trekkInnmeldingModel.getFagmeldingXmlFraFellesformat(respons, fellesFormat)
+
+        assertTrue(innerXml != null, "innerXml should not be null")
+        assertTrue(innerXml.contains("AppRec"), "innerXml should contain AppRec element")
+        assertTrue(!innerXml.contains("EI_fellesformat"), "innerXml should not contain EI_fellesformat wrapper")
+        assertTrue(!innerXml.contains("MottakenhetBlokk"), "innerXml should not contain MottakenhetBlokk")
+        assertTrue(innerXml.contains("B720007F"), "innerXml should contain rejection code")
+    }
+
+    @Test
+    fun `getFagmeldingXmlFraFellesformat returns MsgHead for accepted response`() {
+        val respons = this::class.java.getResource("/trekkopplysning_respons_akseptert.xml")?.readText() ?: ""
+        val trekkInnmeldingModel = TrekkInnmeldingModel()
+        val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponseAsFellesFormat(respons)
+
+        val innerXml = trekkInnmeldingModel.getFagmeldingXmlFraFellesformat(respons, fellesFormat)
+
+        assertTrue(innerXml != null, "innerXml should not be null")
+        assertTrue(innerXml.contains("MsgHead"), "innerXml should contain MsgHead element")
+        assertTrue(!innerXml.contains("EI_fellesformat"), "innerXml should not contain EI_fellesformat wrapper")
+        assertTrue(!innerXml.contains("MottakenhetBlokk"), "innerXml should not contain MottakenhetBlokk")
+        assertTrue(innerXml.contains("INNRAPPORTERING_TREKK_RETUR"), "innerXml should contain message type")
     }
 }
