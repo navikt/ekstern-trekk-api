@@ -11,7 +11,7 @@ prometheus = "1.16.5"
 token-validation-ktor = "6.0.7"
 postgresql = "42.7.11"
 hikari = "7.0.2"
-flyway = "12.6.1"
+flyway = "12.6.2"
 ibm-mq = "9.4.5.1"
 
 [libraries]
