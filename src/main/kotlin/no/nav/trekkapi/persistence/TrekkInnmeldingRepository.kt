@@ -15,6 +15,7 @@ import no.nav.trekkapi.persistence.table.MessageStatusTable.processedAt
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseCode
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseDescription
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseReceivedAt
+import no.nav.trekkapi.persistence.table.MessageStatusTable.responseXml
 import no.nav.trekkapi.util.nowOsloToInstant
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -24,6 +25,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.Base64
 
 class TrekkInnmeldingRepository(
     private val database: Database,
@@ -41,9 +43,10 @@ class TrekkInnmeldingRepository(
         akseptert: Boolean,
         beskrivelse: String? = null,
         kode: String? = null,
+        xml: String? = null,
     ) {
         val status = if (akseptert) MessageStatusEnum.ACCEPTED else MessageStatusEnum.REJECTED
-        update(orgnr, id, status, description = beskrivelse, code = kode)
+        update(orgnr, id, status, description = beskrivelse, code = kode, xml = xml)
     }
 
     suspend fun findNewestStatus(
@@ -51,9 +54,10 @@ class TrekkInnmeldingRepository(
         id: String,
     ): MessageStatus? {
         val row: MessageStatusRow = findStatus(orgnr, id) ?: return null
+        val encodedXml = row.responseXml?.let { Base64.getEncoder().encodeToString(it.toByteArray()) }
         return when (row.latestStatus) {
             MessageStatusEnum.PENDING -> pending(row.messageId, row.processedAt)
-            MessageStatusEnum.ACCEPTED -> accepted(row.messageId, row.processedAt, row.responseReceivedAt!!)
+            MessageStatusEnum.ACCEPTED -> accepted(row.messageId, row.processedAt, row.responseReceivedAt!!, encodedXml)
             MessageStatusEnum.REJECTED ->
                 rejected(
                     row.messageId,
@@ -61,6 +65,7 @@ class TrekkInnmeldingRepository(
                     row.responseReceivedAt!!,
                     row.responseDescription!!,
                     row.responseCode,
+                    encodedXml,
                 )
         }
     }
@@ -94,6 +99,7 @@ class TrekkInnmeldingRepository(
         datetime: Instant = nowOsloToInstant().truncatedTo(ChronoUnit.MICROS),
         description: String?,
         code: String? = null,
+        xml: String? = null,
     ): Boolean =
         withContext(Dispatchers.IO) {
             transaction(database.db) {
@@ -105,6 +111,7 @@ class TrekkInnmeldingRepository(
                         it[responseReceivedAt] = datetime
                         it[responseDescription] = description
                         it[responseCode] = code
+                        it[responseXml] = xml
                     }
                 updatedRows == 1
             }
@@ -117,7 +124,7 @@ class TrekkInnmeldingRepository(
         withContext(Dispatchers.IO) {
             transaction(database.db) {
                 MessageStatusTable
-                    .select(orgNr, messageId, processedAt, latestStatus, responseReceivedAt, responseDescription, responseCode)
+                    .select(orgNr, messageId, processedAt, latestStatus, responseReceivedAt, responseDescription, responseCode, responseXml)
                     .where { (messageId eq id) and (orgNr eq orgnr) }
                     .mapNotNull {
                         MessageStatusRow(
@@ -128,6 +135,7 @@ class TrekkInnmeldingRepository(
                             responseReceivedAt = it[responseReceivedAt],
                             responseDescription = it[responseDescription],
                             responseCode = it[responseCode],
+                            responseXml = it[responseXml],
                         )
                     }.singleOrNull()
             }
