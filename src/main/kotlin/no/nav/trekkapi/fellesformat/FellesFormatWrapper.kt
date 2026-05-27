@@ -1,6 +1,5 @@
 package no.nav.trekkapi.fellesformat
 
-import no.kith.xmlstds.msghead._2006_05_24.MsgHead
 import no.trygdeetaten.xml.eiff._1.EIFellesformat
 import no.trygdeetaten.xml.eiff._1.ObjectFactory
 import java.time.Instant
@@ -29,7 +28,7 @@ fun createEIFellesFormatTrekkopplysning(
     fellesFormatFactory.createEIFellesformat().apply {
         mottakenhetBlokk =
             createFellesFormatMottakEnhetBlokk(authData, inputTrekkopplysning.conversationId, inputTrekkopplysning.messageId, timestamp)
-        msgHead = unmarshal(inputTrekkopplysning.payload, MsgHead::class.java)
+        msgHead = inputTrekkopplysning.payload.unmarshalMsgHead()
     }
 
 const val TREKKOPPLYSNING_SERVICE = "Trekkopplysning"
