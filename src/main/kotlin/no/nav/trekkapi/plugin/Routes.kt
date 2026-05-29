@@ -1,8 +1,10 @@
 package no.nav.trekkapi.plugin
 
+import io.ktor.http.ContentType
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.swagger.swaggerUI
+import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -21,6 +23,12 @@ fun Application.configureRoutes(
         naisRoutes(prometheusMeterRegistry)
         get("/") {
             call.respondText("Ekstern-trekk-api running properly")
+        }
+        get("/schemas/InnrapporteringTrekk-2010-02-04.xsd") {
+            val xsd = Application::class.java.getResourceAsStream("/InnrapporteringTrekk-2010-02-04.xsd")
+                ?.readBytes()
+                ?: error("XSD resource not found")
+            call.respondBytes(xsd, ContentType.Application.Xml)
         }
         authenticate(MASKINPORTEN_AUTH_INNMELDING) {
             innmeldingRoutes(trekkInnmeldingService)

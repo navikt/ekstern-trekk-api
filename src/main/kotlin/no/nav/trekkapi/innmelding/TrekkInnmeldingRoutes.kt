@@ -1,8 +1,10 @@
 package no.nav.trekkapi.innmelding
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.NotFoundException
+import io.ktor.server.request.acceptItems
 import io.ktor.server.request.receiveText
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
@@ -17,6 +19,7 @@ import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.plugin.UnauthorizedException
 import no.nav.trekkapi.plugin.ValidationException
 import java.io.InputStream
+import java.util.Base64
 import kotlin.use
 
 // todo lag test for denne, hvis vi får til maskinporten mock
@@ -47,7 +50,13 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         if (status.status == MessageStatusEnum.PENDING) {
             call.response.header(HttpHeaders.RetryAfter, "10")
         }
-        call.respond(HttpStatusCode.OK, status)
+        val acceptsXml = call.request.acceptItems().any { it.value == ContentType.Application.Xml.toString() }
+        if (acceptsXml && status.responseXml != null) {
+            val decodedXml = Base64.getDecoder().decode(status.responseXml).toString(Charsets.UTF_8)
+            call.respondText(decodedXml, ContentType.Application.Xml, HttpStatusCode.OK)
+        } else {
+            call.respond(HttpStatusCode.OK, status)
+        }
     }
 }
 
