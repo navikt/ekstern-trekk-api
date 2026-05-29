@@ -190,7 +190,9 @@ paths:
                 $ref: "#/components/schemas/MessageStatus"
             application/xml:
               schema:
-                type: string
+                type: object
+                xml:
+                  name: MsgHead
                 description: |
                   Rå XML-respons (base64-dekodert `responseXml`), kun tilgjengelig når status er `ACCEPTED` eller `REJECTED`.
                   Responsen er en `MsgHead`-melding (`MsgHead-v1_2.xsd`) der dokumentinnholdet følger
