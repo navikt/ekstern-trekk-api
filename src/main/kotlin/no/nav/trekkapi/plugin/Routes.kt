@@ -25,9 +25,11 @@ fun Application.configureRoutes(
             call.respondText("Ekstern-trekk-api running properly")
         }
         get("/schemas/InnrapporteringTrekk-2010-02-04.xsd") {
-            val xsd = Application::class.java.getResourceAsStream("/InnrapporteringTrekk-2010-02-04.xsd")
-                ?.readBytes()
-                ?: error("XSD resource not found")
+            val xsd =
+                Application::class.java
+                    .getResourceAsStream("/InnrapporteringTrekk-2010-02-04.xsd")
+                    ?.readBytes()
+                    ?: error("XSD resource not found")
             call.respondBytes(xsd, ContentType.Application.Xml)
         }
         authenticate(MASKINPORTEN_AUTH_INNMELDING) {
