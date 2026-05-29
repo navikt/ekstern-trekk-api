@@ -166,12 +166,10 @@ paths:
 
         Send `Accept: application/xml` for å motta den rå XML-responsen (base64-dekodert) direkte
         når meldingen er ferdigbehandlet (`ACCEPTED` eller `REJECTED`).
-        XML-innholdet følger skjemaet `InnrapporteringTrekk-2010-02-04.xsd`.
+        XML-innholdet er en `MsgHead`-melding (`MsgHead-v1_2.xsd`) der dokumentinnholdet følger
+        [InnrapporteringTrekk-2010-02-04.xsd](/schemas/InnrapporteringTrekk-2010-02-04.xsd).
         Dersom meldingen ennå er `PENDING` returneres vanlig JSON uavhengig av `Accept`-headeren.
       operationId: getMessageStatus
-      externalDocs:
-        description: XML-skjema for responsen (InnrapporteringTrekk-2010-02-04.xsd)
-        url: /schemas/InnrapporteringTrekk-2010-02-04.xsd
       security:
         - maskinporten: []
       parameters:
@@ -195,13 +193,22 @@ paths:
                 type: string
                 description: |
                   Rå XML-respons (base64-dekodert `responseXml`), kun tilgjengelig når status er `ACCEPTED` eller `REJECTED`.
-                  XML-innholdet følger skjemaet definert i `InnrapporteringTrekk-2010-02-04.xsd`
-                  (tilgjengelig på `/schemas/InnrapporteringTrekk-2010-02-04.xsd`).
+                  Responsen er en `MsgHead`-melding (`MsgHead-v1_2.xsd`) der dokumentinnholdet følger
+                  `InnrapporteringTrekk-2010-02-04.xsd` (tilgjengelig på `/schemas/InnrapporteringTrekk-2010-02-04.xsd`).
               example: |
                 <?xml version="1.0" encoding="UTF-8"?>
-                <InnrapporteringTrekk xmlns="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04">
-                  ...
-                </InnrapporteringTrekk>
+                <MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24">
+                  <MsgInfo>...</MsgInfo>
+                  <Document>
+                    <RefDoc>
+                      <Content>
+                        <InnrapporteringTrekk xmlns="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04">
+                          ...
+                        </InnrapporteringTrekk>
+                      </Content>
+                    </RefDoc>
+                  </Document>
+                </MsgHead>
         "401":
           description: Manglende eller ugyldig Maskinporten-token
           content:
@@ -298,6 +305,7 @@ components:
           type: string
           format: byte
           description: |
-            Base64-kodet respons som XML.
+            Base64-kodet `MsgHead`-respons som XML (`MsgHead-v1_2.xsd`) der dokumentinnholdet
+            følger `InnrapporteringTrekk-2010-02-04.xsd`.
             Settes kun når status er `ACCEPTED` eller `REJECTED`.
           example: PEVJRmVsbGVzZm9ybWF0PjxzdGF0dXM+T0s8L3N0YXR1cz48L0VJRmVsbGVzZm9ybWF0Pg==
