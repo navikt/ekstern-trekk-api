@@ -32,6 +32,14 @@ fun Application.configureRoutes(
                     ?: error("XSD resource not found")
             call.respondBytes(xsd, ContentType.Application.Xml)
         }
+        get("/schemas/MsgHead-v1_2.xsd") {
+            val xsd =
+                Application::class.java
+                    .getResourceAsStream("/MsgHead-v1_2.xsd")
+                    ?.readBytes()
+                    ?: error("XSD resource not found")
+            call.respondBytes(xsd, ContentType.Application.Xml)
+        }
         authenticate(MASKINPORTEN_AUTH_INNMELDING) {
             innmeldingRoutes(trekkInnmeldingService)
         }
