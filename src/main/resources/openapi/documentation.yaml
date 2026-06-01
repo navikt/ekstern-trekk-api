@@ -163,6 +163,13 @@ paths:
       description: |
         Returnerer nåværende behandlingsstatus for en innsendt melding.
         ID-en hentes fra `Location`-headeren returnert av `POST /v1/innrapportering`.
+
+        Send `Accept: application/xml` for å motta den rå XML-responsen (base64-dekodert) direkte
+        når meldingen er ferdigbehandlet (`ACCEPTED` eller `REJECTED`).
+        Responsen er enten en `MsgHead`-melding ([MsgHead-v1_2.xsd](/schemas/MsgHead-v1_2.xsd)) med
+        [InnrapporteringTrekk-2010-02-04.xsd](/schemas/InnrapporteringTrekk-2010-02-04.xsd) som dokumentinnhold,
+        eller en frittstående `AppRec` ([AppRec-v1-2004-11-21.xsd](/schemas/AppRec-v1-2004-11-21.xsd)).
+        Dersom meldingen ennå er `PENDING` returneres vanlig JSON uavhengig av `Accept`-headeren.
       operationId: getMessageStatus
       security:
         - maskinporten: []
@@ -182,6 +189,142 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageStatus"
+            application/xml:
+              schema:
+                type: object
+                xml:
+                  name: MsgHead
+                description: |
+                  Rå XML-respons (base64-dekodert `responseXml`), kun tilgjengelig når status er `ACCEPTED` eller `REJECTED`.
+                  Responsen er enten en `MsgHead`-melding ([MsgHead-v1_2.xsd](/schemas/MsgHead-v1_2.xsd)) med
+                  [InnrapporteringTrekk-2010-02-04.xsd](/schemas/InnrapporteringTrekk-2010-02-04.xsd) som dokumentinnhold,
+                  eller en frittstående `AppRec` ([AppRec-v1-2004-11-21.xsd](/schemas/AppRec-v1-2004-11-21.xsd)).
+              examples:
+                innrapporteringTrekk:
+                  summary: MsgHead med InnrapporteringTrekk (ACCEPTED)
+                  value: |
+                    <MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24">
+                        <MsgInfo>
+                            <Type V="INNRAPPORTERING_TREKK_RETUR" DN="Innrapportering av trekk til NAV retur"/>
+                            <MIGversion>v1.2 2006-05-24</MIGversion>
+                            <GenDate>2026-04-21T13:25:16</GenDate>
+                            <MsgId>f2f0f2f6-f0f4-f2f1-f1f3-f2f5f1f6f9f4</MsgId>
+                            <Ack V="N" DN="Nei"/>
+                            <ConversationRef>
+                                <RefToParent>283bc4b8-019a-4526-9912-fc2ddde2efa2</RefToParent>
+                                <RefToConversation>283bc4b8-019a-4526-9912-fc2ddde2efa2</RefToConversation>
+                            </ConversationRef>
+                            <Sender>
+                                <Organisation>
+                                    <OrganisationName>NAV IKT</OrganisationName>
+                                    <Ident>
+                                        <Id>79768</Id>
+                                        <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
+                                    </Ident>
+                                </Organisation>
+                            </Sender>
+                            <Receiver>
+                                <Organisation>
+                                    <OrganisationName>TEST ORG</OrganisationName>
+                                    <Ident>
+                                        <Id>000000000</Id>
+                                        <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
+                                    </Ident>
+                                    <Organisation>
+                                        <OrganisationName>Økonomi og oppgjør</OrganisationName>
+                                        <Ident>
+                                            <Id>000000001</Id>
+                                            <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
+                                        </Ident>
+                                    </Organisation>
+                                </Organisation>
+                            </Receiver>
+                            <Patient>
+                                <FamilyName>RETNINGSLINJE</FamilyName>
+                                <GivenName>KONSEKVENT</GivenName>
+                                <Sex V="1" DN="Mann"/>
+                                <Ident>
+                                    <Id>***********</Id>
+                                    <TypeId V="FNR" S="2.16.578.1.12.4.1.1.8116" DN="Fødselsnummer"/>
+                                </Ident>
+                            </Patient>
+                        </MsgInfo>
+                        <Document>
+                            <ContentDescription>SV:SV:Innrapportering av trekk til NAV</ContentDescription>
+                            <RefDoc>
+                                <IssueDate V="2026-04-21T11:24:55Z"/>
+                                <MsgType V="XML" DN="XML-instans"/>
+                                <Content>
+                                    <InnrapporteringTrekk
+                                            xsi:schemaLocation="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04 InnrapporteringTrekk-2010-02-04.xsd"
+                                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                            xmlns="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04"
+                                            xmlns:fk1="http://www.kith.no/xmlstds/felleskomponent1">
+                                        <Identifisering>
+                                            <KreditorTrekkId>787e4fe2-70f0-40d1-9799-14be30fb421</KreditorTrekkId>
+                                            <NavTrekkId>0014035554</NavTrekkId>
+                                            <DebitorId>
+                                                <fk1:Id>***********</fk1:Id>
+                                                <fk1:TypeId V="FNR"/>
+                                            </DebitorId>
+                                        </Identifisering>
+                                        <Periode>
+                                            <PeriodeFomDato>2026-06-01</PeriodeFomDato>
+                                        </Periode>
+                                        <Kreditor>
+                                            <TSSId>***********</TSSId>
+                                            <OrgNr>
+                                                <fk1:Id>***********</fk1:Id>
+                                                <fk1:TypeId V=""/>
+                                            </OrgNr>
+                                            <Navn>TEST ORG</Navn>
+                                            <Adresse>
+                                                <fk1:StreetAdr>postboks 145</fk1:StreetAdr>
+                                                <fk1:PostalCode>5701</fk1:PostalCode>
+                                            </Adresse>
+                                            <Ref></Ref>
+                                            <Kontonr>***********</Kontonr>
+                                            <KID></KID>
+                                        </Kreditor>
+                                    </InnrapporteringTrekk>
+                                </Content>
+                            </RefDoc>
+                        </Document>
+                    </MsgHead>
+                appRec:
+                  summary: AppRec (REJECTED)
+                  value: |
+                    <AppRec xmlns="http://www.kith.no/xmlstds/apprec/2004-11-21">
+                        <MsgType V="INNRAPPORTERING_TREKK" DN="Innrapportering av trekk til NAV"/>
+                        <MIGversion>1.0 2004-11-21</MIGversion>
+                        <GenDate>2026-04-21T13:25:16</GenDate>
+                        <Id>a1b2c3d4-e5f6-7890-abcd-ef1234567890</Id>
+                        <Sender>
+                            <HCP>
+                                <Inst>
+                                    <Name>NAV IKT</Name>
+                                    <Id>79768</Id>
+                                    <TypeId V="HER" DN="HER-id"/>
+                                </Inst>
+                            </HCP>
+                        </Sender>
+                        <Receiver>
+                            <HCP>
+                                <Inst>
+                                    <Name>TEST ORG</Name>
+                                    <Id>000000000</Id>
+                                    <TypeId V="HER" DN="HER-id"/>
+                                </Inst>
+                            </HCP>
+                        </Receiver>
+                        <Status V="AVVIST" DN="Avvist"/>
+                        <Error V="B720007F" S="2.16.578.1.12.4.1.1.9063" DN="Trekkvedtak finnes fra før"/>
+                        <OriginalMsgId>
+                            <MsgType V="INNRAPPORTERING_TREKK" DN="Innrapportering av trekk til NAV"/>
+                            <IssueDate>2026-04-21T11:24:55</IssueDate>
+                            <Id>283bc4b8-019a-4526-9912-fc2ddde2efa2</Id>
+                        </OriginalMsgId>
+                    </AppRec>
         "401":
           description: Manglende eller ugyldig Maskinporten-token
           content:
@@ -278,6 +421,8 @@ components:
           type: string
           format: byte
           description: |
-            Base64-kodet respons som XML.
+            Base64-kodet XML-respons. Enten en `MsgHead`-melding ([MsgHead-v1_2.xsd](/schemas/MsgHead-v1_2.xsd))
+            med [InnrapporteringTrekk-2010-02-04.xsd](/schemas/InnrapporteringTrekk-2010-02-04.xsd) som dokumentinnhold,
+            eller en frittstående `AppRec` ([AppRec-v1-2004-11-21.xsd](/schemas/AppRec-v1-2004-11-21.xsd)).
             Settes kun når status er `ACCEPTED` eller `REJECTED`.
           example: PEVJRmVsbGVzZm9ybWF0PjxzdGF0dXM+T0s8L3N0YXR1cz48L0VJRmVsbGVzZm9ybWF0Pg==
