@@ -10,17 +10,20 @@ import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.RoutingRequest
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import java.io.InputStream
+import java.util.Base64
+import kotlin.io.bufferedReader
+import kotlin.io.readText
+import kotlin.use
 import no.nav.trekkapi.auth.orgNrFromTokenValidationContext
 import no.nav.trekkapi.fellesformat.unmarshalMsgHead
 import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.plugin.UnauthorizedException
 import no.nav.trekkapi.plugin.ValidationException
-import java.io.InputStream
-import java.util.Base64
-import kotlin.use
 
 // todo lag test for denne, hvis vi får til maskinporten mock
 
@@ -50,15 +53,19 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         if (status.status == MessageStatusEnum.PENDING) {
             call.response.header(HttpHeaders.RetryAfter, "10")
         }
-        val acceptsXml = call.request.acceptItems().any { it.value == ContentType.Application.Xml.toString() }
-        if (acceptsXml && status.responseXml != null) {
-            val decodedXml = Base64.getDecoder().decode(status.responseXml).toString(Charsets.UTF_8)
-            call.respondText(decodedXml, ContentType.Application.Xml, HttpStatusCode.OK)
+        if (call.request.acceptsXml() && status.responseXml != null) {
+            call.respondText(
+                Base64.getDecoder().decode(status.responseXml).toString(Charsets.UTF_8),
+                ContentType.Application.Xml,
+                HttpStatusCode.OK,
+            )
         } else {
             call.respond(HttpStatusCode.OK, status)
         }
     }
 }
+
+fun RoutingRequest.acceptsXml(): Boolean = acceptItems().any { it.value == ContentType.Application.Xml.toString() }
 
 private fun String.validateInnmeldingXML() =
     runCatching { this.unmarshalMsgHead() }
