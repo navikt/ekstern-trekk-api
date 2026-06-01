@@ -13,17 +13,17 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingRequest
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import java.io.InputStream
-import java.util.Base64
-import kotlin.io.bufferedReader
-import kotlin.io.readText
-import kotlin.use
 import no.nav.trekkapi.auth.orgNrFromTokenValidationContext
 import no.nav.trekkapi.fellesformat.unmarshalMsgHead
 import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.plugin.UnauthorizedException
 import no.nav.trekkapi.plugin.ValidationException
+import java.io.InputStream
+import java.util.Base64
+import kotlin.io.bufferedReader
+import kotlin.io.readText
+import kotlin.use
 
 // todo lag test for denne, hvis vi får til maskinporten mock
 
