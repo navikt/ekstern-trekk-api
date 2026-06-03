@@ -1,8 +1,8 @@
 openapi: "3.1.0"
 info:
-  title: NAV Trekkopplysning API
+  title: Nav Trekkopplysning API
   description: |
-    API for innrapportering av trekkopplysninger til NAV.
+    API for innrapportering av trekkopplysninger til Nav.
 
     Tilgang krever et gyldig Maskinporten-token med scope `nav:utbetaling/trekkopplysning/innmelding`.
 
@@ -393,7 +393,7 @@ components:
           example: "7f41c4e9-b6bd-44a3-822b-622332b4e421"
         status:
           type: string
-          description: Maskinlesbar behandlingsstatus
+          description: Behandlingsstatus
           enum:
             - PENDING
             - ACCEPTED
@@ -415,7 +415,7 @@ components:
           example: Trekkvedtak finnes fra før
         rejectionCode:
           type: string
-          description: Maskinlesbar kode for avvisningsårsak. Settes kun når status er `REJECTED`.
+          description: Feilkode for avvisningsårsak. Settes kun når status er `REJECTED`.
           example: B720007F
         responseXml:
           type: string
