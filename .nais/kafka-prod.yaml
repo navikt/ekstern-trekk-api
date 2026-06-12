@@ -1,0 +1,25 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  labels:
+    team: team-emottak
+  name: trekkapi.respons
+  namespace: team-emottak
+spec:
+  pool: nav-prod
+  config:
+    cleanupPolicy: delete
+    maxMessageBytes: 1048588
+    minimumInSyncReplicas: 2
+    partitions: 1
+    replication: 3
+    retentionBytes: -1
+    retentionHours: 168
+    segmentHours: 168
+  acl:
+    - access: write
+      application: ebms-asynch-router-ut
+      team: team-emottak
+    - access: read
+      application: ekstern-trekk-api
+      team: team-emottak
