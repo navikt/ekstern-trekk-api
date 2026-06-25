@@ -1,43 +1,35 @@
 package no.nav.trekkapi.innmelding
 
-import no.nav.trekkapi.fellesformat.marshalTrekkopplysning
 import org.junit.jupiter.api.Test
-import org.w3c.dom.Element
 import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TrekkInnmeldingModelTest {
     @Test
-    fun `Build FellesFormat produces expected object`() {
+    fun `Build FellesFormat wraps payload and produces MottakenhetBlokk`() {
         val orgnr = "123456789"
         val id = "the-ID-is-333444555"
-        val expectedId = "the-ID-is-333444555"
         val payload = this::class.java.getResource("/trekkopplysning_innmelding.xml")?.readText() ?: ""
 
         val trekkInnmeldingModel = TrekkInnmeldingModel()
         val result = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, payload)
 
-        assertEquals(expectedId, result.mottakenhetBlokk.ediLoggId, "ediLoggId")
-        assertEquals("Trekkopplysning", result.mottakenhetBlokk.ebService, "ebService")
-        assertEquals("Innmelding", result.mottakenhetBlokk.ebAction, "ebAction")
-        assertEquals("Fordringshaver", result.mottakenhetBlokk.ebRole, "ebRole")
-        assertEquals(expectedId, result.mottakenhetBlokk.ebXMLSamtaleId, "convId")
-        assertEquals("123456789", result.mottakenhetBlokk.orgNummer, "orgnr")
-        assertEquals("", result.mottakenhetBlokk.herIdentifikator, "HER-id")
-        assertEquals("123456789", result.mottakenhetBlokk.avsender, "avsender")
-        assertEquals("EKSTERN_TREKK_API", result.mottakenhetBlokk.partnerReferanse, "partnerRef")
-        assertEquals("xml", result.mottakenhetBlokk.meldingsType, "meldingsType")
-        assertTrue(result.mottakenhetBlokk.mottattDatotid != null, "mottattDatotid")
-        assertEquals("", result.mottakenhetBlokk.avsenderRef, "avsenderRef")
-
-        assertEquals(1, result.msgHead.document.size, "payload documents")
-        val document = result.msgHead.document.get(0)
-        val mainElement: Element =
-            document.refDoc.content.any
-                .get(0) as Element
-        assertEquals("SV:Innrapportering av trekk til NAV", document.contentDescription, "payload contentDescription")
-        assertEquals("InnrapporteringTrekk", mainElement.tagName, "main XML element name")
+        assertTrue(result.contains("""<EI_fellesformat xmlns="http://www.trygdeetaten.no/xml/eiff/1/">"""), "EI_fellesformat wrapper")
+        assertTrue(result.contains("""ediLoggId="the-ID-is-333444555""""), "ediLoggId")
+        assertTrue(result.contains("""ebService="Trekkopplysning""""), "ebService")
+        assertTrue(result.contains("""ebAction="Innmelding""""), "ebAction")
+        assertTrue(result.contains("""ebRole="Fordringshaver""""), "ebRole")
+        assertTrue(result.contains("""ebXMLSamtaleId="the-ID-is-333444555""""), "convId")
+        assertTrue(result.contains("""orgNummer="123456789""""), "orgnr")
+        assertTrue(result.contains("""herIdentifikator=""""), "HER-id")
+        assertTrue(result.contains("""avsender="123456789""""), "avsender")
+        assertTrue(result.contains("""partnerReferanse="EKSTERN_TREKK_API""""), "partnerRef")
+        assertTrue(result.contains("""meldingsType="xml""""), "meldingsType")
+        assertTrue(result.contains("""avsenderRef=""""), "avsenderRef")
+        // payloaden skal pakkes inn ordrett, slik at fagmeldingen bevares
+        assertTrue(result.contains("<InnrapporteringTrekk"), "payload preserved")
+        assertTrue(result.contains("SV:Innrapportering av trekk til NAV"), "payload contentDescription preserved")
     }
 
     @Test
@@ -48,8 +40,7 @@ class TrekkInnmeldingModelTest {
         val payload = this::class.java.getResource("/trekkopplysning_innmelding.xml")?.readText() ?: ""
 
         val trekkInnmeldingModel = TrekkInnmeldingModel()
-        val fellesformat = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, payload, timestamp = timestamp)
-        val message = marshalTrekkopplysning(fellesformat)
+        val message = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, payload, timestamp = timestamp)
 
         val expectedProlog = """
             <?xml version='1.0' encoding='UTF-8'?>
@@ -82,7 +73,7 @@ class TrekkInnmeldingModelTest {
         assertEquals("123456789", result.mottakenhetBlokk.avsender, "avsender")
         assertEquals("EKSTERN_TREKK_API", result.mottakenhetBlokk.partnerReferanse, "partnerRef")
         assertEquals("xml", result.mottakenhetBlokk.meldingsType, "meldingsType")
-        assertTrue(result.mottakenhetBlokk.mottattDatotid != null, "mottattDatotid")
+        assertTrue(result.mottakenhetBlokk.mottattDatotid.isNotEmpty(), "mottattDatotid")
         assertEquals("someRef", result.mottakenhetBlokk.avsenderRef, "avsenderRef")
 
         assertEquals(true, trekkInnmeldingModel.isRejected(result), "Avvist")

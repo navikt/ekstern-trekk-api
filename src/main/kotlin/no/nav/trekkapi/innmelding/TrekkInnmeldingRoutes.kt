@@ -14,7 +14,7 @@ import io.ktor.server.routing.RoutingRequest
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.trekkapi.auth.orgNrFromTokenValidationContext
-import no.nav.trekkapi.fellesformat.unmarshalMsgHead
+import no.nav.trekkapi.fellesformat.validateMsgHeadSchema
 import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.plugin.UnauthorizedException
@@ -68,7 +68,7 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
 fun RoutingRequest.acceptsXml(): Boolean = acceptItems().any { it.value == ContentType.Application.Xml.toString() }
 
 private fun String.validateInnmeldingXML() =
-    runCatching { this.unmarshalMsgHead() }
+    runCatching { this.validateMsgHeadSchema() }
         .onFailure { throw ValidationException("Invalid XML format", it) }
 
 fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {

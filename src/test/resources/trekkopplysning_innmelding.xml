@@ -49,6 +49,7 @@ av trekk til NAV"/>
             <MsgType V="XML" DN="XML-instans"/>
             <Content>
                 <InnrapporteringTrekk xmlns="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04"
+                                      xmlns:fk1="http://www.kith.no/xmlstds/felleskomponent1"
                                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                       xsi:schemaLocation="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04
             InnrapporteringTrekk-2010-02-04.xsd">
@@ -56,8 +57,8 @@ av trekk til NAV"/>
                     <Identifisering>
                         <KreditorTrekkId>ee387905-4b77-47c2-9fba-e21847525c3e</KreditorTrekkId>
                         <DebitorId>
-                            <Id>debitorId</Id>
-                            <TypeId DN="Fødselsnummer" S="2.16.578.1.12.4.1.1.8116" V="FNR"/>
+                            <fk1:Id>debitorId</fk1:Id>
+                            <fk1:TypeId DN="Fødselsnummer" S="2.16.578.1.12.4.1.1.8116" V="FNR"/>
                         </DebitorId>
                     </Identifisering>
                     <Trekk>

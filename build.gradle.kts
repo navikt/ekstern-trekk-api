@@ -54,26 +54,10 @@ repositories {
     mavenCentral()
     maven {
         name = "GitHub Packages NAV"
-        url = uri("https://maven.pkg.github.com/navikt/emottak-payload-xsd")
+        url = uri("https://maven.pkg.github.com/navikt/token-support")
         credentials {
             username = "token"
             password = System.getenv("GITHUB_TOKEN")
-        }
-    }
-    exclusiveContent {
-        // emottak-payload-xsd depends on org.apache.cxf:cxf-rt-ws-security:4.1.4 which depends on opensaml-saml-impl:5.1.6
-        // This is not available in maven central
-        forRepository {
-            maven {
-                name = "Shibboleth"
-                url = uri("https://build.shibboleth.net/maven/releases/")
-            }
-        }
-        filter {
-            // Only allow specific group/artifact from Shibboleth
-            includeGroup("org.opensaml")
-            includeGroup("net.shibboleth")
-            // Add more includeGroup or includeModule as needed
         }
     }
 }
@@ -81,7 +65,6 @@ repositories {
 dependencies {
     implementation(libs.logback)
     implementation(libs.logstash)
-    implementation(libs.emottak.payload.xsd) // brukes for å få Fellesformat. Kan evt erstattes med lib utenfor emottak
     implementation(libs.bundles.ktor)
     implementation(libs.server.swagger)
     implementation(libs.server.status.pages)

@@ -27,7 +27,7 @@ fun Application.configureRoutes(
         get("/schemas/InnrapporteringTrekk-2010-02-04.xsd") {
             val xsd =
                 Application::class.java
-                    .getResourceAsStream("/InnrapporteringTrekk-2010-02-04.xsd")
+                    .getResourceAsStream("/xsd/InnrapporteringTrekk-2010-02-04.xsd")
                     ?.readBytes()
                     ?: error("XSD resource not found")
             call.respondBytes(xsd, ContentType.Application.Xml)
@@ -35,7 +35,7 @@ fun Application.configureRoutes(
         get("/schemas/MsgHead-v1_2.xsd") {
             val xsd =
                 Application::class.java
-                    .getResourceAsStream("/MsgHead-v1_2.xsd")
+                    .getResourceAsStream("/xsd/MsgHead-v1_2.xsd")
                     ?.readBytes()
                     ?: error("XSD resource not found")
             call.respondBytes(xsd, ContentType.Application.Xml)
@@ -43,7 +43,7 @@ fun Application.configureRoutes(
         get("/schemas/AppRec-v1-2004-11-21.xsd") {
             val xsd =
                 Application::class.java
-                    .getResourceAsStream("/AppRec-v1-2004-11-21.xsd")
+                    .getResourceAsStream("/xsd/AppRec-v1-2004-11-21.xsd")
                     ?.readBytes()
                     ?: error("XSD resource not found")
             call.respondBytes(xsd, ContentType.Application.Xml)

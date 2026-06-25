@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- FORSLAG, UNDER UTVIKLING -->
+<!-- Espen Stranger Seland, KITH espen.seland@kith.no --> <xs:schema xmlns="http://www.kith.no/xmlstds/base64container" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.kith.no/xmlstds/base64container" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="Base64Container">
+		<xs:complexType>
+			<xs:simpleContent>
+				<xs:extension base="xs:base64Binary"/>
+			</xs:simpleContent>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
