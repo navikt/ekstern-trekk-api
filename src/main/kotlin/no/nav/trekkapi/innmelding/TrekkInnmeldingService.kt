@@ -2,7 +2,6 @@ package no.nav.trekkapi.innmelding
 
 import no.nav.trekkapi.api.MessageStatus
 import no.nav.trekkapi.configuration.TrekkopplysningMq
-import no.nav.trekkapi.fellesformat.marshalTrekkopplysning
 import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
 import no.nav.trekkapi.util.getEnvVar
@@ -40,8 +39,7 @@ class TrekkInnmeldingService(
         id: String,
         body: String,
     ) {
-        val fellesFormat = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, body)
-        val messageBody = marshalTrekkopplysning(fellesFormat)
+        val messageBody = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, body)
 
         if (useMq) {
             log.debug("Sending in trekkopplysning with body: $messageBody")

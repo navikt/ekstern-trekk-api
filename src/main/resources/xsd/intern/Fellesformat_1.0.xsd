@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- edited with XMLSPY v5 rel. 3 U (http://www.xmlspy.com) by Trygdeetaten (Rikstrygdeverket) -->
+<schema targetNamespace="http://www.trygdeetaten.no/xml/eiff/1/" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:ff="http://www.trygdeetaten.no/xml/eiff/1/" xmlns:xsd="http://www.w3.org/2001/XMLSchema.xsd" xmlns:aln="http://www.nav.no/altinn/2007-02-02" xmlns:mh="http://www.kith.no/xmlstds/msghead/2006-05-24" xmlns:rtv="http://www.kith.no/xmlstds/sykmelding/2004-05-03" xmlns:pom="http://www.rtv.no/NamespacePOM" xmlns:lom="http://www.kith.no/xmlstds/lom/2003-12-01" xmlns:app="http://www.kith.no/xmlstds/apprec/2004-11-21" xmlns:asv="http://www.kith.no/xmlstds/rtv/appsvar/1/" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<import namespace="http://www.kith.no/xmlstds/apprec/2004-11-21" schemaLocation="../AppRec-v1-2004-11-21.xsd"/>
+	<import namespace="http://www.kith.no/xmlstds/msghead/2006-05-24" schemaLocation="../MsgHead-v1_2.xsd"/>
+	<element name="EI_fellesformat">
+		<annotation>
+			<documentation>Dette er rotnoden i fellesformatet som inneholder nyttedata, mottaksblokk, sporingsinfo og eventuelt apprec </documentation>
+		</annotation>
+		<complexType>
+			<sequence>
+				<choice minOccurs="0">
+					<element ref="mh:MsgHead" minOccurs="0"/>
+					<element name="Content" minOccurs="0">
+						<complexType>
+							<complexContent>
+								<restriction base="anyType">
+									<sequence>
+										<any processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+									</sequence>
+								</restriction>
+							</complexContent>
+						</complexType>
+					</element>
+				</choice>
+				<element name="MottakenhetBlokk" minOccurs="0">
+					<annotation>
+						<documentation>Dette elementet innholder den informasjon og de data som genereres i mottaket og som sendes med for videre behandling innnover i systemet.</documentation>
+					</annotation>
+					<complexType>
+						<complexContent>
+							<extension base="ff:MottakenhetBlokk_type"/>
+						</complexContent>
+					</complexType>
+				</element>
+				<element ref="app:AppRec" minOccurs="0"/>
+			</sequence>
+		</complexType>
+	</element>
+	<complexType name="MottakenhetBlokk_type">
+		<annotation>
+			<documentation>Denne blokken inneholder informasjon generert i mottaket.</documentation>
+		</annotation>
+		<attribute name="ediLoggId" use="optional">
+			<annotation>
+				<documentation>En identifikator til en logg i mottaket som er slik at med denne kan man spore denne meldingen tilbake til avsender.</documentation>
+			</annotation>
+			<simpleType>
+				<restriction base="string">
+					<whiteSpace value="preserve"/>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="avsender" type="string" use="optional">
+			<annotation>
+				<documentation>Dette er mottakets referanse for aa senere kunne finne tilbake til rett avsender av denne meldingen</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="ebXMLSamtaleId" type="string" use="optional">
+			<annotation>
+				<documentation>Dette er ebXML meldingens correlation id (samtale id) som er unik for alle xml meldinger og svar med opphav i  samme melding.</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="mottaksId" type="string" use="optional">
+			<annotation>
+				<documentation>Dette er ebXML-konvoluttens mottaksid.</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="meldingsType" type="string" use="optional">
+			<annotation>
+				<documentation>Denne attributten viser den opprinnelige meldingens meldingstype.</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="avsenderRef" type="string" use="optional"/>
+		<attribute name="avsenderFnrFraDigSignatur" use="optional">
+			<annotation>
+				<documentation>Dette feltet inneholder fnr. til avsender av meldingen slik avsender er identifisert gjennom sin digitale signatur.</documentation>
+			</annotation>
+			<simpleType>
+				<restriction base="string">
+					<whiteSpace value="collapse"/>
+					<minLength value="11"/>
+					<maxLength value="11"/>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="mottattDatotid" type="dateTime" use="optional">
+			<annotation>
+				<documentation>tidspunkt melding ble tatt til behandling av mottaket.</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="orgNummer" use="optional">
+			<simpleType>
+				<restriction base="string">
+					<minLength value="9"/>
+					<maxLength value="9"/>
+					<whiteSpace value="collapse"/>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="avsenderOrgNrFraDigSignatur" use="optional">
+			<annotation>
+				<documentation>Inneholder orgnummer hentet fra DN i virksomhetsertifikat brukt for signering av melding.</documentation>
+			</annotation>
+			<simpleType>
+				<restriction base="string">
+					<whiteSpace value="collapse"/>
+					<minLength value="9"/>
+					<maxLength value="9"/>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="partnerReferanse" use="optional">
+			<annotation>
+				<documentation>Inneholder referranse til partner som ikke er helseforetak.</documentation>
+			</annotation>
+			<simpleType>
+				<restriction base="string">
+					<whiteSpace value="collapse"/>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="herIdentifikator" use="optional">
+			<annotation>
+				<documentation>Inneholder referranse til helseforetak.</documentation>
+			</annotation>
+			<simpleType>
+				<restriction base="string">
+					<whiteSpace value="collapse"/>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="ebRole" use="optional">
+			<annotation>
+				<documentation>Inneholder ebXML Role parameter ( Fra_Role ).</documentation>
+			</annotation>
+			<simpleType>
+				<restriction base="string">
+					<whiteSpace value="collapse"/>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="ebService" use="optional">
+			<annotation>
+				<documentation>Inneholder ebXML Service parameter.</documentation>
+			</annotation>
+			<simpleType>
+				<restriction base="string">
+					<whiteSpace value="collapse"/>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="ebAction" use="optional">
+			<annotation>
+				<documentation>Inneholder ebXML Action parameter.</documentation>
+			</annotation>
+			<simpleType>
+				<restriction base="string">
+					<whiteSpace value="collapse"/>
+				</restriction>
+			</simpleType>
+		</attribute>
+	</complexType>
+</schema>

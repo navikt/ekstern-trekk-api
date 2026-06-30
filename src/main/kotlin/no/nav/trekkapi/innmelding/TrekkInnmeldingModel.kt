@@ -1,13 +1,13 @@
 package no.nav.trekkapi.innmelding
 
 import no.nav.trekkapi.fellesformat.AuthData
+import no.nav.trekkapi.fellesformat.FellesformatRespons
 import no.nav.trekkapi.fellesformat.InputTrekkopplysning
 import no.nav.trekkapi.fellesformat.createEIFellesFormatTrekkopplysning
-import no.nav.trekkapi.fellesformat.unmarshalFellesformat
-import no.trygdeetaten.xml.eiff._1.EIFellesformat
+import no.nav.trekkapi.fellesformat.parseFellesformatRespons
+import no.nav.trekkapi.fellesformat.secureDocumentBuilderFactory
 import java.io.StringWriter
 import java.time.Instant
-import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
@@ -21,33 +21,31 @@ class TrekkInnmeldingModel {
         id: String,
         payload: String,
         timestamp: Instant = Instant.now(),
-    ): EIFellesformat =
+    ): String =
         createEIFellesFormatTrekkopplysning(
             InputTrekkopplysning(id, id, payload),
             AuthData("", orgnr),
             timestamp,
         )
 
-    fun parseTrekkInnmeldingResponseAsFellesFormat(message: String): EIFellesformat = message.unmarshalFellesformat()
+    fun parseTrekkInnmeldingResponseAsFellesFormat(message: String): FellesformatRespons = message.parseFellesformatRespons()
 
-    fun orgnrOgMeldingsId(fellesFormatRespons: EIFellesformat): Pair<String, String> =
+    fun orgnrOgMeldingsId(fellesFormatRespons: FellesformatRespons): Pair<String, String> =
         Pair(fellesFormatRespons.mottakenhetBlokk.orgNummer, fellesFormatRespons.mottakenhetBlokk.ediLoggId)
 
-    fun isRejected(fellesFormatRespons: EIFellesformat): Boolean = "Avvisning" == ebAction(fellesFormatRespons)
+    fun isRejected(fellesFormatRespons: FellesformatRespons): Boolean = "Avvisning" == ebAction(fellesFormatRespons)
 
-    fun isAccepted(fellesFormatRespons: EIFellesformat): Boolean = "Kvittering" == ebAction(fellesFormatRespons)
+    fun isAccepted(fellesFormatRespons: FellesformatRespons): Boolean = "Kvittering" == ebAction(fellesFormatRespons)
 
-    fun getRejectionDescription(fellesFormatRespons: EIFellesformat): String = appRecError(fellesFormatRespons).dn ?: ""
+    fun getRejectionDescription(fellesFormatRespons: FellesformatRespons): String = fellesFormatRespons.appRecError?.dn ?: ""
 
-    fun getRejectionCode(fellesFormatRespons: EIFellesformat): String? = appRecError(fellesFormatRespons).v
+    fun getRejectionCode(fellesFormatRespons: FellesformatRespons): String? = fellesFormatRespons.appRecError?.v
 
-    fun ebAction(fellesFormatRespons: EIFellesformat): String = fellesFormatRespons.mottakenhetBlokk.ebAction
-
-    fun appRecError(fellesFormatRespons: EIFellesformat) = fellesFormatRespons.appRec.error!![0]!!
+    fun ebAction(fellesFormatRespons: FellesformatRespons): String = fellesFormatRespons.mottakenhetBlokk.ebAction
 
     fun getFagmeldingXmlFraFellesformat(
         rawXml: String,
-        fellesFormat: EIFellesformat,
+        fellesFormat: FellesformatRespons,
     ): String? {
         val tagName =
             when {
@@ -56,9 +54,7 @@ class TrekkInnmeldingModel {
                 else -> return null
             }
         val doc =
-            DocumentBuilderFactory
-                .newInstance()
-                .apply { isNamespaceAware = true }
+            secureDocumentBuilderFactory()
                 .newDocumentBuilder()
                 .parse(rawXml.byteInputStream())
         val nodes = doc.getElementsByTagNameNS("*", tagName)
