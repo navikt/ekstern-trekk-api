@@ -6,7 +6,7 @@ import no.nav.trekkapi.configuration.TrekkopplysningMq
 import no.nav.trekkapi.log
 import javax.jms.Session
 
-// todo konskje få egen bruker ?
+// todo konskje få egen MQ bruker ?
 class JmsClient(
     config: TrekkopplysningMq,
     val factory: MQQueueConnectionFactory = MQQueueConnectionFactory(),

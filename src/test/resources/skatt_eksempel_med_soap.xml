@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24" xmlns:ns2="http://www.w3.org/2000/09/xmldsig#"
+                 xmlns:ns4="http://www.kith.no/xmlstds/felleskomponent1"
+                 xmlns:ns3="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04">
+            <MsgInfo>
+                <Type V="ARKIV"/>
+                <MIGversion>v1.2 2006-05-24</MIGversion>
+                <GenDate>2026-07-01T09:52:30.631+02:00</GenDate>
+                <MsgId>54383197</MsgId>
+                <Sender>
+                    <Organisation>
+                        <OrganisationName>Skatteetaten</OrganisationName>
+                        <Ident>
+                            <Id>936295266</Id>
+                            <TypeId V="ENH"/>
+                        </Ident>
+                    </Organisation>
+                </Sender>
+                <Receiver>
+                    <Organisation>
+                        <OrganisationName>NAV</OrganisationName>
+                        <Ident>
+                            <Id>NAV</Id>
+                            <TypeId V="ENH"/>
+                        </Ident>
+                    </Organisation>
+                </Receiver>
+            </MsgInfo>
+            <Document>
+                <ContentType V="XML"/>
+                <RefDoc>
+                    <MsgType V="TREINF"/>
+                    <Content>
+                        <ns3:InnrapporteringTrekk>
+                            <ns3:Aksjonskode V="NY"/>
+                            <ns3:Identifisering>
+                                <ns3:KreditorTrekkId>kreditor-2</ns3:KreditorTrekkId>
+                                <ns3:DebitorId>
+                                    <ns4:Id>12345678910</ns4:Id>
+                                    <ns4:TypeId V="FNR"/>
+                                </ns3:DebitorId>
+                            </ns3:Identifisering>
+                            <ns3:Trekk>
+                                <ns3:KodeTrekktype V="AVBA"/>
+                                <ns3:KodeTrekkAlternativ V="LOPM"/>
+                                <ns3:Sats V="1200.50"/>
+                                <ns3:Saldo V="15000.00"/>
+                                <ns3:GyldigTomDato>2026-12-31</ns3:GyldigTomDato>
+                            </ns3:Trekk>
+                            <ns3:Periode>
+                                <ns3:PeriodeFomDato>2026-01-01</ns3:PeriodeFomDato>
+                            </ns3:Periode>
+                            <ns3:Kreditor>
+                                <ns3:TSSId>80001018463</ns3:TSSId>
+                                <ns3:OrgNr>
+                                    <ns4:Id>936295266</ns4:Id>
+                                    <ns4:TypeId V="ENH"/>
+                                </ns3:OrgNr>
+                                <ns3:Navn>Test Kreditor</ns3:Navn>
+                                <ns3:Adresse>
+                                    <ns4:Type V="BESOK"/>
+                                    <ns4:StreetAdr>Testgata 1</ns4:StreetAdr>
+                                    <ns4:PostalCode>0101</ns4:PostalCode>
+                                    <ns4:City>Oslo</ns4:City>
+                                    <ns4:County V="Oslo"/>
+                                    <ns4:Country V="NO"/>
+                                </ns3:Adresse>
+                                <ns3:Ref>ref-1</ns3:Ref>
+                                <ns3:Kontonr>76940569814</ns3:Kontonr>
+                                <ns3:KID>KID-123</ns3:KID>
+                            </ns3:Kreditor>
+                        </ns3:InnrapporteringTrekk>
+                    </Content>
+                </RefDoc>
+            </Document>
+        </MsgHead>
+    </soap:Body>
+</soap:Envelope>

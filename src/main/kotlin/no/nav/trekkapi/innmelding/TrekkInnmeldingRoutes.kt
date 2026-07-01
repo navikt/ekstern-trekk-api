@@ -25,8 +25,6 @@ import kotlin.io.bufferedReader
 import kotlin.io.readText
 import kotlin.use
 
-// todo lag test for denne, hvis vi får til maskinporten mock
-
 fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
     post("/v1/innrapportering") {
         log.debug("Innrapportering kalt")
@@ -68,7 +66,7 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
 
 fun RoutingRequest.acceptsXml(): Boolean = acceptItems().any { it.value == ContentType.Application.Xml.toString() }
 
-private fun String.validateInnmeldingXML() =
+fun String.validateInnmeldingXML() =
     runCatching { this.unmarshalMsgHead() }
         .onFailure { throw ValidationException("Invalid XML format", it) }
 

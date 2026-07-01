@@ -11,7 +11,13 @@ class XmlMarshaller(
     jaxbContext: JAXBContext,
 ) {
     private val marshaller = jaxbContext.createMarshaller()
-    private val unmarshaller = jaxbContext.createUnmarshaller()
+    private val unmarshaller =
+        jaxbContext.createUnmarshaller().apply {
+            eventHandler =
+                jakarta.xml.bind.ValidationEventHandler { event ->
+                    throw event.linkedException ?: RuntimeException(event.message)
+                }
+        }
     private val marshallingMonitor = Any()
     private val unmarshallingMonitor = Any()
 

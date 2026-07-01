@@ -14,9 +14,7 @@ const val MASKINPORTEN_AUTH_INNMELDING = "MASKINPORTEN_INNMELDING"
 
 const val SCOPE_INNMELDING = "nav:utbetaling/trekkopplysning/innmelding"
 
-// todo må testes, tanken er at vi får et token som inneholder audience "nav:utbetaling/trekkopplysning/innmelding" for de som har tilgang
 // settes opp i nais.yaml: orgnr X har tilgang til scope Y https://docs.nais.io/auth/maskinporten/how-to/secure/
-// maskinporten må akseptere bruker X. Og så må vi få ut orgnr fra authdetails
 fun getInnmeldingConfig(): TokenSupportConfig =
     TokenSupportConfig(
         IssuerConfig(
