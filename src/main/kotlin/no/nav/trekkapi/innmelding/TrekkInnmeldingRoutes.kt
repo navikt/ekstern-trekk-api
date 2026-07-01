@@ -33,6 +33,7 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
 
         val innmeldingXml = call.receiveText()
+        log.debug("Received trekkopplysning with body: $innmeldingXml")
         innmeldingXml.validateInnmeldingXML()
         val id = trekkInnmeldingService.register(orgnr, innmeldingXml)
         log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
