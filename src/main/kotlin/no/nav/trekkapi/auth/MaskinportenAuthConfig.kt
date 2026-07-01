@@ -32,17 +32,11 @@ fun getRequiredClaims(): RequiredClaims = RequiredClaims(issuer = MASKINPORTEN_A
 
 suspend fun RoutingContext.orgNrFromTokenValidationContext(): String? {
     val principal = call.principal<TokenValidationContextPrincipal>()
-    log.debug("### Principal: $principal")
     val context = principal?.context
-    log.debug("### Context: $context")
     val claims = context?.getClaims(MASKINPORTEN_AUTH_INNMELDING)
-    log.debug("### Claims for $MASKINPORTEN_AUTH_INNMELDING: $claims")
     val consumer = claims?.get("consumer") as Map<*, *>
-    log.debug("### Claim 'consumer': $consumer")
-    // val sub = claims?.get("sub") as Map<*, *>
-    // log.debug("### Claim 'sub': $sub")
     val orgnr = consumer.extractOrgnummer()
-    log.debug("### Extracted orgnr: $orgnr")
+    log.debug("Called with principal $principal, extracted orgnr: $orgnr")
     return orgnr
 }
 
