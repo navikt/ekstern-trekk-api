@@ -91,6 +91,7 @@ fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         log.debug("TEST-Innrapportering kalt med body")
         val orgnr = "924616733"
         val innmeldingXml = call.receiveText()
+        log.debug("Received trekkopplysning with body: $innmeldingXml")
         innmeldingXml.validateInnmeldingXML()
         val id = trekkInnmeldingService.register(orgnr, innmeldingXml)
         log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
