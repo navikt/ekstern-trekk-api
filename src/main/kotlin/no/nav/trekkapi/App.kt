@@ -50,7 +50,6 @@ suspend fun ResourceScope.runServer() {
     log.info("--- Getting config")
     val config = config()
     log.info("--- Config loaded: $config")
-    val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
     log.info("--- Starting database")
     val database = Database(messageStatusDbConfig.value)
@@ -58,18 +57,16 @@ suspend fun ResourceScope.runServer() {
     database.migrate(messageStatusMigrationConfig.value)
 
     log.info("--- Starting services")
-    val trekkInnmeldingModel = TrekkInnmeldingModel()
-    val trekkInnmeldingRepository = TrekkInnmeldingRepository(database)
 
-    val mqConfig = config.trekkopplysningMq
-    val trekkInnmeldingService = TrekkInnmeldingService(mqConfig, trekkInnmeldingRepository)
-
-    val serverConfig = config.server
     server(
         factory = Netty,
-        port = serverConfig.port.value,
-        preWait = serverConfig.preWait,
-        module = trekkapiModule(trekkInnmeldingService, prometheusMeterRegistry),
+        port = config.server.port.value,
+        preWait = config.server.preWait,
+        module =
+            trekkapiModule(
+                TrekkInnmeldingService(config.trekkopplysningMq, TrekkInnmeldingRepository(database)),
+                PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+            ),
     )
 
     log.debug("Configuration: {}", config)
@@ -80,8 +77,8 @@ suspend fun ResourceScope.runServer() {
             startResponseReceiver(
                 config.kafkaResponseQueue.topic,
                 config.kafka.groupId,
-                trekkInnmeldingModel,
-                trekkInnmeldingRepository,
+                TrekkInnmeldingModel(),
+                TrekkInnmeldingRepository(database),
             )
         }
     }
