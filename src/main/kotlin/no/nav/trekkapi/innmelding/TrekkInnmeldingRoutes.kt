@@ -87,6 +87,18 @@ fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         call.respond(HttpStatusCode.Accepted)
     }
 
+    post("/test/innrapportering") {
+        log.debug("TEST-Innrapportering kalt med body")
+        val orgnr = "924616733"
+        val innmeldingXml = call.receiveText()
+        innmeldingXml.validateInnmeldingXML()
+        val id = trekkInnmeldingService.register(orgnr, innmeldingXml)
+        log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
+        call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
+        call.response.header(HttpHeaders.RetryAfter, "10")
+        call.respond(HttpStatusCode.Accepted)
+    }
+
     get("/test/innrapportering/{id}") {
         val id = call.pathParameters["id"]!!
         log.debug("TEST Hent innrapporteringstatus kalt med id: $id")
