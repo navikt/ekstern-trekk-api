@@ -8,7 +8,6 @@ import javax.xml.datatype.DatatypeFactory
 
 private val fellesFormatFactory = ObjectFactory()
 
-// todo må evt. finne disse via auth/maskinporten. Vet ikke om HER-id er obligatorisk. Test ved å kalle fagsystem
 data class AuthData(
     val herId: String,
     val orgnummer: String,
@@ -28,7 +27,6 @@ fun createEIFellesFormatTrekkopplysning(
     fellesFormatFactory.createEIFellesformat().apply {
         mottakenhetBlokk =
             createFellesFormatMottakEnhetBlokk(authData, inputTrekkopplysning.conversationId, inputTrekkopplysning.messageId, timestamp)
-        msgHead = inputTrekkopplysning.payload.unmarshalMsgHead()
     }
 
 const val TREKKOPPLYSNING_SERVICE = "Trekkopplysning"

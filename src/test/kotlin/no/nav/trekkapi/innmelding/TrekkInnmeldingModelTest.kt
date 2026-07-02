@@ -1,8 +1,8 @@
 package no.nav.trekkapi.innmelding
 
-import no.nav.trekkapi.fellesformat.marshalTrekkopplysning
+import io.ktor.utils.io.core.toByteArray
+import no.nav.trekkapi.fellesformat.FellesformatXmlBuilder
 import org.junit.jupiter.api.Test
-import org.w3c.dom.Element
 import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -30,14 +30,6 @@ class TrekkInnmeldingModelTest {
         assertEquals("xml", result.mottakenhetBlokk.meldingsType, "meldingsType")
         assertTrue(result.mottakenhetBlokk.mottattDatotid != null, "mottattDatotid")
         assertEquals("", result.mottakenhetBlokk.avsenderRef, "avsenderRef")
-
-        assertEquals(1, result.msgHead.document.size, "payload documents")
-        val document = result.msgHead.document.get(0)
-        val mainElement: Element =
-            document.refDoc.content.any
-                .get(0) as Element
-        assertEquals("SV:Innrapportering av trekk til NAV", document.contentDescription, "payload contentDescription")
-        assertEquals("InnrapporteringTrekk", mainElement.tagName, "main XML element name")
     }
 
     @Test
@@ -45,14 +37,15 @@ class TrekkInnmeldingModelTest {
         val orgnr = "123456789"
         val id = "the-ID-is-333444555"
         val timestamp: Instant = Instant.parse("2026-04-29T13:20:49.692+02:00")
-        val payload = this::class.java.getResource("/trekkopplysning_innmelding.xml")?.readText() ?: ""
+        val payload = this::class.java.getResource("/trekkopplysning_innmelding_sortedAttr.xml")?.readText() ?: ""
 
         val trekkInnmeldingModel = TrekkInnmeldingModel()
         val fellesformat = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, payload, timestamp = timestamp)
-        val message = marshalTrekkopplysning(fellesformat)
+        val fellesformatXmlBuilder = FellesformatXmlBuilder()
+        val message = fellesformatXmlBuilder.buildXml(fellesformat.mottakenhetBlokk, payload.toByteArray())
 
         val expectedProlog = """
-            <?xml version='1.0' encoding='UTF-8'?>
+            <?xml version="1.0" encoding="UTF-8"?>
             <EI_fellesformat xmlns="http://www.trygdeetaten.no/xml/eiff/1/">            
         """
         val expectedEpilog = """
