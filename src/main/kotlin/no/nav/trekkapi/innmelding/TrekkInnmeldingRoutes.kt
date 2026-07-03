@@ -104,7 +104,7 @@ fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         val id = call.pathParameters["id"]!!
         log.debug("TEST Hent innrapporteringstatus kalt med id: $id")
 
-        val orgnr = "123456789"
+        val orgnr = "924616733"
         val status = trekkInnmeldingService.getStatus(orgnr, id)
         if (status != null) {
             log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
