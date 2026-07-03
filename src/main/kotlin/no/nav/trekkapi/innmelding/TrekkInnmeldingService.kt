@@ -1,9 +1,8 @@
 package no.nav.trekkapi.innmelding
 
-import io.ktor.utils.io.core.toByteArray
 import no.nav.trekkapi.api.MessageStatus
 import no.nav.trekkapi.configuration.TrekkopplysningMq
-import no.nav.trekkapi.fellesformat.FellesformatXmlBuilder
+import no.nav.trekkapi.fellesformat.marshalTrekkopplysning
 import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
 import kotlin.uuid.Uuid
@@ -40,8 +39,9 @@ class TrekkInnmeldingService(
         body: String,
     ) {
         val fellesformat = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, body)
-        val fellesformatXmlBuilder = FellesformatXmlBuilder()
-        val messageBody = fellesformatXmlBuilder.buildXml(fellesformat.mottakenhetBlokk, body.toByteArray())
+//        val fellesformatXmlBuilder = FellesformatXmlBuilder()
+//        val messageBody = fellesformatXmlBuilder.buildXml(fellesformat.mottakenhetBlokk, body.toByteArray())
+        val messageBody = marshalTrekkopplysning(fellesformat)
 
         log.debug("Sending in trekkopplysning with body: $messageBody")
         jmSclient.sendMessage(queue, messageBody)
