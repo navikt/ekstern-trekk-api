@@ -12,4 +12,5 @@ data class MessageStatusRow(
     val responseDescription: String?,
     val responseCode: String?,
     val responseXml: String?,
+    val requestXml: String?,
 )
