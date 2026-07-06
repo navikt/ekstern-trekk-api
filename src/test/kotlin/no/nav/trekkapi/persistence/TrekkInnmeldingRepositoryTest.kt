@@ -92,7 +92,7 @@ class TrekkInnmeldingRepositoryTest {
         }
 
     @Test
-    fun `Verify registerResponse() axcepted and findNewestStatus()`() =
+    fun `Verify registerResponse() accepted and findNewestStatus()`() =
         runBlocking {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123456789"
@@ -125,7 +125,7 @@ class TrekkInnmeldingRepositoryTest {
         }
 
     @Test
-    fun `Verify registerResponse() axcepted with xml and findNewestStatus()`() =
+    fun `Verify registerResponse() accepted with xml and findNewestStatus()`() =
         runBlocking {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123456789"
