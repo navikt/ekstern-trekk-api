@@ -1,27 +1,30 @@
 package no.nav.trekkapi.innmelding
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.NotFoundException
+import io.ktor.server.request.acceptItems
 import io.ktor.server.request.receiveText
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.RoutingRequest
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import no.kith.xmlstds.msghead._2006_05_24.MsgHead
 import no.nav.trekkapi.auth.orgNrFromTokenValidationContext
-import no.nav.trekkapi.fellesformat.unmarshal
+import no.nav.trekkapi.fellesformat.unmarshalMsgHead
 import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.plugin.UnauthorizedException
 import no.nav.trekkapi.plugin.ValidationException
 import java.io.InputStream
+import java.util.Base64
+import kotlin.io.bufferedReader
+import kotlin.io.readText
 import kotlin.use
 import kotlin.uuid.Uuid
-
-// todo lag test for denne, hvis vi får til maskinporten mock
 
 fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
     post("/v1/innrapportering") {
@@ -38,6 +41,7 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
             .onFailure { throw ValidationException("Idempotency-Key må være en gyldig UUID (RFC 4122)", it) }
 
         val innmeldingXml = call.receiveText()
+        log.debug("Received trekkopplysning with body: $innmeldingXml")
         innmeldingXml.validateInnmeldingXML()
         val id = trekkInnmeldingService.register(orgnr, idempotencyKeyValue, innmeldingXml)
         log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
@@ -58,12 +62,22 @@ fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         if (status.status == MessageStatusEnum.PENDING) {
             call.response.header(HttpHeaders.RetryAfter, "10")
         }
-        call.respond(HttpStatusCode.OK, status)
+        if (call.request.acceptsXml() && status.responseXml != null) {
+            call.respondText(
+                Base64.getDecoder().decode(status.responseXml).toString(Charsets.UTF_8),
+                ContentType.Application.Xml,
+                HttpStatusCode.OK,
+            )
+        } else {
+            call.respond(HttpStatusCode.OK, status)
+        }
     }
 }
 
-private fun String.validateInnmeldingXML() =
-    runCatching { unmarshal(this, MsgHead::class.java) }
+fun RoutingRequest.acceptsXml(): Boolean = acceptItems().any { it.value == ContentType.Application.Xml.toString() }
+
+fun String.validateInnmeldingXML() =
+    runCatching { this.unmarshalMsgHead() }
         .onFailure { throw ValidationException("Invalid XML format", it) }
 
 fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {

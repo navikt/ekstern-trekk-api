@@ -22,6 +22,10 @@ object MessageStatusTable : Table("message_status") {
 
     val responseCode: Column<String?> = varchar("response_code", 64).nullable()
 
+    val responseXml: Column<String?> = text("response_xml").nullable()
+
+    val requestXml: Column<String?> = text("request_xml").nullable()
+
     val idempotencyKey: Column<String> = varchar("idempotency_key", 36)
 
     override val primaryKey = PrimaryKey(messageId)

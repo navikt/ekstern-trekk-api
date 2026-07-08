@@ -1,11 +1,11 @@
 package no.nav.trekkapi.innmelding
 
-import no.nav.trekkapi.api.MessageStatus
+import io.ktor.utils.io.core.toByteArray
+import no.nav.trekkapi.api.MessageStatusDto
 import no.nav.trekkapi.configuration.TrekkopplysningMq
-import no.nav.trekkapi.fellesformat.marshalTrekkopplysning
+import no.nav.trekkapi.fellesformat.FellesformatXmlBuilder
 import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
-import no.nav.trekkapi.util.getEnvVar
 import kotlin.uuid.Uuid
 
 class TrekkInnmeldingService(
@@ -14,7 +14,6 @@ class TrekkInnmeldingService(
     val trekkInnmeldingModel: TrekkInnmeldingModel = TrekkInnmeldingModel(),
     val jmSclient: JmsClient = JmsClient(trekkopplysningMq),
     val queue: String = trekkopplysningMq.queue,
-    val useMq: Boolean = getEnvVar("USE_MQ", "false").toBoolean(),
 ) {
     suspend fun alreadyRegistered(
         orgnr: String,
@@ -24,7 +23,7 @@ class TrekkInnmeldingService(
     suspend fun getStatus(
         orgnr: String,
         id: String,
-    ): MessageStatus? = innrapporteringRepository.findNewestStatus(orgnr, id)
+    ): MessageStatusDto? = innrapporteringRepository.findNewestStatus(orgnr, id)
 
     suspend fun register(
         orgnr: String,
@@ -43,18 +42,16 @@ class TrekkInnmeldingService(
         idempotencyKeyValue: String,
         body: String,
     ) {
-        val fellesFormat = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, body)
-        val messageBody = marshalTrekkopplysning(fellesFormat)
+        val fellesformat = trekkInnmeldingModel.buildTrekkInnmeldingAsFellesFormat(orgnr, id, body)
+        val fellesformatXmlBuilder = FellesformatXmlBuilder()
+        val messageBody = fellesformatXmlBuilder.buildXml(fellesformat.mottakenhetBlokk, body.toByteArray())
 
-        if (useMq) {
-            log.debug("Sending in trekkopplysning with body: $messageBody")
-            jmSclient.sendMessage(queue, messageBody)
-        } else {
-            log.debug("MQ turned OFF, would send in trekkopplysning with body: $messageBody")
+        log.debug("Sending in trekkopplysning with body: $messageBody")
+        jmSclient.sendMessage(queue, messageBody)
+
+        if (!innrapporteringRepository.register(orgnr, id, messageBody, idempotencyKeyValue)) {
+            log.warn("Inserted count from DB for trekkopplysning (messageId: '$id', orgnr: '$orgnr') was not 1 as expected")
         }
-
-        innrapporteringRepository.register(orgnr, id, idempotencyKeyValue)
-        // todo Hvis noe gikk galt eller timeout: exception
     }
 
     fun verifyConnection() {

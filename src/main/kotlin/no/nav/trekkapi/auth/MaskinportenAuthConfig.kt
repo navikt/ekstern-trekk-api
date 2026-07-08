@@ -14,9 +14,7 @@ const val MASKINPORTEN_AUTH_INNMELDING = "MASKINPORTEN_INNMELDING"
 
 const val SCOPE_INNMELDING = "nav:utbetaling/trekkopplysning/innmelding"
 
-// todo må testes, tanken er at vi får et token som inneholder audience "nav:utbetaling/trekkopplysning/innmelding" for de som har tilgang
 // settes opp i nais.yaml: orgnr X har tilgang til scope Y https://docs.nais.io/auth/maskinporten/how-to/secure/
-// maskinporten må akseptere bruker X. Og så må vi få ut orgnr fra authdetails
 fun getInnmeldingConfig(): TokenSupportConfig =
     TokenSupportConfig(
         IssuerConfig(
@@ -32,17 +30,11 @@ fun getRequiredClaims(): RequiredClaims = RequiredClaims(issuer = MASKINPORTEN_A
 
 suspend fun RoutingContext.orgNrFromTokenValidationContext(): String? {
     val principal = call.principal<TokenValidationContextPrincipal>()
-    log.debug("### Principal: $principal")
     val context = principal?.context
-    log.debug("### Context: $context")
     val claims = context?.getClaims(MASKINPORTEN_AUTH_INNMELDING)
-    log.debug("### Claims for $MASKINPORTEN_AUTH_INNMELDING: $claims")
     val consumer = claims?.get("consumer") as Map<*, *>
-    log.debug("### Claim 'consumer': $consumer")
-    // val sub = claims?.get("sub") as Map<*, *>
-    // log.debug("### Claim 'sub': $sub")
     val orgnr = consumer.extractOrgnummer()
-    log.debug("### Extracted orgnr: $orgnr")
+    log.debug("Called with principal $principal, extracted orgnr: $orgnr")
     return orgnr
 }
 

@@ -1,6 +1,5 @@
 package no.nav.trekkapi.fellesformat
 
-import no.kith.xmlstds.msghead._2006_05_24.MsgHead
 import no.trygdeetaten.xml.eiff._1.EIFellesformat
 import no.trygdeetaten.xml.eiff._1.ObjectFactory
 import java.time.Instant
@@ -9,7 +8,6 @@ import javax.xml.datatype.DatatypeFactory
 
 private val fellesFormatFactory = ObjectFactory()
 
-// todo må evt. finne disse via auth/maskinporten. Vet ikke om HER-id er obligatorisk. Test ved å kalle fagsystem
 data class AuthData(
     val herId: String,
     val orgnummer: String,
@@ -29,7 +27,6 @@ fun createEIFellesFormatTrekkopplysning(
     fellesFormatFactory.createEIFellesformat().apply {
         mottakenhetBlokk =
             createFellesFormatMottakEnhetBlokk(authData, inputTrekkopplysning.conversationId, inputTrekkopplysning.messageId, timestamp)
-        msgHead = unmarshal(inputTrekkopplysning.payload, MsgHead::class.java)
     }
 
 const val TREKKOPPLYSNING_SERVICE = "Trekkopplysning"

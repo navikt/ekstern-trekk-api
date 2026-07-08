@@ -1,7 +1,7 @@
 plugins {
-    kotlin("jvm") version "2.3.21"
-    id("io.ktor.plugin") version "3.5.0"
-    kotlin("plugin.serialization") version "2.3.21"
+    kotlin("jvm") version "2.4.0"
+    id("io.ktor.plugin") version "3.5.1"
+    kotlin("plugin.serialization") version "2.4.0"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 
@@ -15,6 +15,8 @@ application {
 tasks {
     shadowJar {
         archiveFileName.set("app.jar")
+        mergeServiceFiles()
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
     ktlintFormat {
         this.enabled = true
@@ -77,6 +79,9 @@ repositories {
 }
 
 dependencies {
+    implementation(kotlin("stdlib"))
+    implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlin:kotlin-reflect:2.4.0")
     implementation(libs.logback)
     implementation(libs.logstash)
     implementation(libs.emottak.payload.xsd) // brukes for å få Fellesformat. Kan evt erstattes med lib utenfor emottak

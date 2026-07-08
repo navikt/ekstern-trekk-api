@@ -38,21 +38,35 @@ suspend fun startResponseReceiver(
         .receive(topic)
         .map { record ->
             log.debug("Processing record: {}", record)
-            val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponseAsFellesFormat(record.value())
+            val mottattXml = record.value().toString(Charsets.UTF_8)
+            val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponseAsFellesFormat(mottattXml)
+            val fagmeldingXml = trekkInnmeldingModel.getFagmeldingXmlFraFellesformat(mottattXml, fellesFormat)
             val (orgnummer, meldingsid) = trekkInnmeldingModel.orgnrOgMeldingsId(fellesFormat)
             val isAccepted = trekkInnmeldingModel.isAccepted(fellesFormat)
             if (isAccepted) {
-                trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, true, null)
-                log.info("Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: akseptert")
+                if (trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, true, null, null, fagmeldingXml)) {
+                    log.info(
+                        "Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: akseptert",
+                    )
+                } else {
+                    log.warn(
+                        "Updated rows fra DB for akseptert trekkopplysningsmelding-respons (messageId '$meldingsid', orgnr '$orgnummer') var ikke 1 som forventet",
+                    )
+                }
             } else {
                 val isRejected = trekkInnmeldingModel.isRejected(fellesFormat)
                 if (isRejected) {
                     val beskrivelse = trekkInnmeldingModel.getRejectionDescription(fellesFormat)
                     val kode = trekkInnmeldingModel.getRejectionCode(fellesFormat)
-                    trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, false, beskrivelse, kode)
-                    log.info(
-                        "Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: avvist, beskrivelse: $beskrivelse",
-                    )
+                    if (trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, false, beskrivelse, kode, fagmeldingXml)) {
+                        log.info(
+                            "Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: avvist, beskrivelse: $beskrivelse",
+                        )
+                    } else {
+                        log.warn(
+                            "Updated rows fra DB for avvist trekkopplysningsmelding-respons (messageId '$meldingsid', orgnr '$orgnummer') var ikke 1 som forventet",
+                        )
+                    }
                 } else {
                     log.error("Ukjent status for trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid")
                 }

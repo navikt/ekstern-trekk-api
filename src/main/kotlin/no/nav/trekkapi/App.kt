@@ -11,6 +11,7 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
 import no.nav.trekkapi.configuration.config
 import no.nav.trekkapi.innmelding.TrekkInnmeldingModel
@@ -28,7 +29,6 @@ import no.nav.trekkapi.plugin.configureStatusPages
 import no.nav.trekkapi.util.coroutineScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import kotlin.coroutines.coroutineContext
 
 val log: Logger = LoggerFactory.getLogger("no.nav.trekkapi.App")
 
@@ -75,7 +75,7 @@ suspend fun ResourceScope.runServer() {
     log.debug("Configuration: {}", config)
     if (config.kafkaResponseQueue.active) {
         log.info("Starting response receiver")
-        val eventReceiverScope = coroutineScope(coroutineContext + Dispatchers.IO)
+        val eventReceiverScope = coroutineScope(currentCoroutineContext() + Dispatchers.IO)
         eventReceiverScope.launch {
             startResponseReceiver(
                 config.kafkaResponseQueue.topic,

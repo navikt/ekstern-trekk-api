@@ -1,6 +1,6 @@
 # ekstern-trekk-api
 
-API for eksterne samhandlere for å melde inn trekkopplysninger til NAV.
+API for eksterne samhandlere for å melde inn trekkopplysninger til Nav.
 
 Full API-dokumentasjon er tilgjengelig i Swagger UI, se [Miljøer](#miljøer).
 
@@ -51,14 +51,14 @@ Authorization: Bearer <maskinporten-token>
 
 Responsen er JSON med følgende felter:
 
-| Felt                   | Beskrivelse                                                      |
-|------------------------|------------------------------------------------------------------|
-| `id`                   | Unik identifikator tildelt av tjenesten                          |
-| `status`               | `PENDING`, `ACCEPTED` eller `REJECTED`                           |
-| `submittedAt`          | Tidspunkt da meldingen ble mottatt (ISO-8601)                    |
-| `updatedAt`            | Tidspunkt for siste statusendring (ISO-8601)                     |
-| `rejectionDescription` | Beskrivelse av avvisningsårsak (kun satt når `REJECTED`)         |
-| `rejectionCode`        | Maskinlesbar kode for avvisningsårsak (kun satt når `REJECTED`)  |
+| Felt                   | Beskrivelse                                              |
+|------------------------|----------------------------------------------------------|
+| `id`                   | Unik identifikator tildelt av tjenesten                  |
+| `status`               | `PENDING`, `ACCEPTED` eller `REJECTED`                   |
+| `submittedAt`          | Tidspunkt da meldingen ble mottatt (ISO-8601)            |
+| `updatedAt`            | Tidspunkt for siste statusendring (ISO-8601)             |
+| `rejectionDescription` | Beskrivelse av avvisningsårsak (kun satt når `REJECTED`) |
+| `rejectionCode`        | Feilkode for avvisningsårsak (kun satt når `REJECTED`)   |
 
 Poll til status er `ACCEPTED` eller `REJECTED`.
 
