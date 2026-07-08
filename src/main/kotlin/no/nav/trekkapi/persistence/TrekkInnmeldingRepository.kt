@@ -1,7 +1,7 @@
 package no.nav.trekkapi.persistence
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import no.nav.trekkapi.api.MessageStatus
+import no.nav.trekkapi.api.MessageStatusDto
 import no.nav.trekkapi.api.accepted
 import no.nav.trekkapi.api.pending
 import no.nav.trekkapi.api.rejected
@@ -12,6 +12,7 @@ import no.nav.trekkapi.persistence.table.MessageStatusTable.latestStatus
 import no.nav.trekkapi.persistence.table.MessageStatusTable.messageId
 import no.nav.trekkapi.persistence.table.MessageStatusTable.orgNr
 import no.nav.trekkapi.persistence.table.MessageStatusTable.processedAt
+import no.nav.trekkapi.persistence.table.MessageStatusTable.requestXml
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseCode
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseDescription
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseReceivedAt
@@ -33,9 +34,8 @@ class TrekkInnmeldingRepository(
     suspend fun register(
         orgnr: String,
         id: String,
-    ) {
-        insert(orgnr, id)
-    }
+        requestBody: String,
+    ): Boolean = insert(orgnr, id, requestBody)
 
     suspend fun registerResponse(
         orgnr: String,
@@ -44,15 +44,15 @@ class TrekkInnmeldingRepository(
         beskrivelse: String? = null,
         kode: String? = null,
         xml: String? = null,
-    ) {
+    ): Boolean {
         val status = if (akseptert) MessageStatusEnum.ACCEPTED else MessageStatusEnum.REJECTED
-        update(orgnr, id, status, description = beskrivelse, code = kode, xml = xml)
+        return update(orgnr, id, status, description = beskrivelse, code = kode, xml = xml)
     }
 
     suspend fun findNewestStatus(
         orgnr: String,
         id: String,
-    ): MessageStatus? {
+    ): MessageStatusDto? {
         val row: MessageStatusRow = findStatus(orgnr, id) ?: return null
         val encodedXml = row.responseXml?.let { Base64.getEncoder().encodeToString(it.toByteArray()) }
         return when (row.latestStatus) {
@@ -78,6 +78,7 @@ class TrekkInnmeldingRepository(
     suspend fun insert(
         orgnr: String,
         id: String,
+        requestBody: String,
         now: Instant = nowOsloToInstant().truncatedTo(ChronoUnit.MICROS),
     ): Boolean =
         withContext(Dispatchers.IO) {
@@ -88,6 +89,7 @@ class TrekkInnmeldingRepository(
                         it[messageId] = id
                         it[processedAt] = now
                         it[latestStatus] = MessageStatusEnum.PENDING
+                        it[requestXml] = requestBody
                     }.insertedCount == 1
             }
         }
@@ -124,8 +126,17 @@ class TrekkInnmeldingRepository(
         withContext(Dispatchers.IO) {
             transaction(database.db) {
                 MessageStatusTable
-                    .select(orgNr, messageId, processedAt, latestStatus, responseReceivedAt, responseDescription, responseCode, responseXml)
-                    .where { (messageId eq id) and (orgNr eq orgnr) }
+                    .select(
+                        orgNr,
+                        messageId,
+                        processedAt,
+                        latestStatus,
+                        responseReceivedAt,
+                        responseDescription,
+                        responseCode,
+                        responseXml,
+                        requestXml,
+                    ).where { (messageId eq id) and (orgNr eq orgnr) }
                     .mapNotNull {
                         MessageStatusRow(
                             orgNr = it[orgNr],
@@ -136,6 +147,7 @@ class TrekkInnmeldingRepository(
                             responseDescription = it[responseDescription],
                             responseCode = it[responseCode],
                             responseXml = it[responseXml],
+                            requestXml = it[requestXml],
                         )
                     }.singleOrNull()
             }

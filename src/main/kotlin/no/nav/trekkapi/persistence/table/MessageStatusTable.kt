@@ -24,6 +24,8 @@ object MessageStatusTable : Table("message_status") {
 
     val responseXml: Column<String?> = text("response_xml").nullable()
 
+    val requestXml: Column<String?> = text("request_xml").nullable()
+
     override val primaryKey = PrimaryKey(messageId)
 }
 
