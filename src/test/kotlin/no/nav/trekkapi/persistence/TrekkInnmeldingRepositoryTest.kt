@@ -73,7 +73,7 @@ class TrekkInnmeldingRepositoryTest {
                 rollback()
             }
         }
-    
+
     @Test
     fun `register() should return false when duplicate`() =
         runBlocking {
@@ -84,7 +84,7 @@ class TrekkInnmeldingRepositoryTest {
             suspendTransaction {
                 var registered = repo.register(orgnr, id, payload, idempotencyKey)
                 assertTrue(registered)
-                registered = repo.register(orgnr, id, payload)
+                registered = repo.register(orgnr, id, payload, idempotencyKey)
                 assertFalse(registered)
                 exec("SELECT count(*) FROM message_status") { rs ->
                     rs.next()
