@@ -11,15 +11,18 @@ import org.junit.jupiter.api.TestInstance
 import org.testcontainers.postgresql.PostgreSQLContainer
 import java.util.Base64
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 // For å kunne opprette DB bare 1 gang for hele testklassen
-// Alternativet er å flytte Before/AfterAll funksjonenw til et companion object
+// Alternativet er å flytte Before/AfterAll funksjonene til et companion object
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrekkInnmeldingRepositoryTest {
     lateinit var dbContainer: PostgreSQLContainer
     lateinit var db: Database
+    val payload = this::class.java.getResource("/trekkopplysning_innmelding.xml")?.readText() ?: ""
 
     @BeforeAll
     fun setup() {
@@ -43,7 +46,8 @@ class TrekkInnmeldingRepositoryTest {
             val orgnr = "123451111"
             val id = "theIdOfTheInsertedRecord"
             suspendTransaction {
-                repo.register(orgnr, id)
+                val registered = repo.register(orgnr, id, payload)
+                assertTrue(registered)
                 val status = repo.findNewestStatus(orgnr, id)
                 assertEquals(MessageStatusEnum.PENDING, status!!.status)
                 assertEquals(id, status.id)
@@ -61,20 +65,43 @@ class TrekkInnmeldingRepositoryTest {
                     assertEquals("PENDING", rs.getString("latest_status"))
                     assertNull(rs.getTimestamp("response_at"))
                     assertNull(rs.getString("response_description"))
+                    assertNotNull(rs.getString("request_xml"))
+                    assertEquals(payload, rs.getString("request_xml"))
                 }
                 rollback()
             }
         }
 
     @Test
-    fun `Verify registerAcceptedResponse() and findNewestStatus()`() =
+    fun `register() should return false when duplicate`() =
+        runBlocking {
+            val repo = TrekkInnmeldingRepository(db)
+            val orgnr = "123451111"
+            val id = "theIdOfTheInsertedRecord"
+            suspendTransaction {
+                var registered = repo.register(orgnr, id, payload)
+                assertTrue(registered)
+                registered = repo.register(orgnr, id, payload)
+                assertFalse(registered)
+                exec("SELECT count(*) FROM message_status") { rs ->
+                    rs.next()
+                    assertEquals(1, rs.getInt(1))
+                }
+                rollback()
+            }
+        }
+
+    @Test
+    fun `Verify registerResponse() accepted and findNewestStatus()`() =
         runBlocking {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123456789"
             val id = "theIdOfTheInsertedRecord"
             suspendTransaction {
-                repo.register(orgnr, id)
-                repo.registerResponse("123456789", "theIdOfTheInsertedRecord", true)
+                var registered = repo.register(orgnr, id, payload)
+                assertTrue(registered)
+                registered = repo.registerResponse(orgnr, id, true)
+                assertTrue(registered)
                 val status = repo.findNewestStatus(orgnr, id)
                 assertEquals(MessageStatusEnum.ACCEPTED, status!!.status)
                 assertEquals(id, status.id)
@@ -90,13 +117,15 @@ class TrekkInnmeldingRepositoryTest {
                     assertNotNull(rs.getTimestamp("response_at"))
                     assertNull(rs.getString("response_description"))
                     assertNull(rs.getString("response_xml"))
+                    assertNotNull(rs.getString("request_xml"))
+                    assertEquals(payload, rs.getString("request_xml"))
                 }
                 rollback()
             }
         }
 
     @Test
-    fun `Verify registerAcceptedResponse() with xml and findNewestStatus()`() =
+    fun `Verify registerResponse() accepted with xml and findNewestStatus()`() =
         runBlocking {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123456789"
@@ -105,8 +134,10 @@ class TrekkInnmeldingRepositoryTest {
                 """<MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24"><MsgInfo><Type V="INNRAPPORTERING_TREKK_RETUR"/></MsgInfo></MsgHead>"""
             val expectedBase64 = Base64.getEncoder().encodeToString(fagmeldingXml.toByteArray())
             suspendTransaction {
-                repo.register(orgnr, id)
-                repo.registerResponse(orgnr, id, true, xml = fagmeldingXml)
+                var registered = repo.register(orgnr, id, payload)
+                assertTrue(registered)
+                registered = repo.registerResponse(orgnr, id, true, xml = fagmeldingXml)
+                assertTrue(registered)
                 val status = repo.findNewestStatus(orgnr, id)
                 assertEquals(MessageStatusEnum.ACCEPTED, status!!.status)
                 assertEquals(expectedBase64, status.responseXml)
@@ -119,14 +150,35 @@ class TrekkInnmeldingRepositoryTest {
         }
 
     @Test
-    fun `Verify registerRejectedResponse() and findNewestStatus()`() =
+    fun `registerResponse() should return false when unknown ID`() =
+        runBlocking {
+            val repo = TrekkInnmeldingRepository(db)
+            val orgnr = "123456789"
+            val id = "theIdOfTheInsertedRecord"
+            val fagmeldingXml =
+                """<MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24"><MsgInfo><Type V="INNRAPPORTERING_TREKK_RETUR"/></MsgInfo></MsgHead>"""
+            suspendTransaction {
+                var registered = repo.register(orgnr, id, payload)
+                assertTrue(registered)
+                registered = repo.registerResponse("111222333", id, true, xml = fagmeldingXml)
+                assertFalse(registered)
+                registered = repo.registerResponse(orgnr, "an-unknown-message-id", true, xml = fagmeldingXml)
+                assertFalse(registered)
+                rollback()
+            }
+        }
+
+    @Test
+    fun `Verify registerResponse() rejected and findNewestStatus()`() =
         runBlocking {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123456789"
             val id = "theIdOfTheInsertedRecord"
             suspendTransaction {
-                repo.register(orgnr, id)
-                repo.registerResponse("123456789", "theIdOfTheInsertedRecord", false, "Avvist av test", "TEST_CODE")
+                var registered = repo.register(orgnr, id, payload)
+                assertTrue(registered)
+                registered = repo.registerResponse("123456789", "theIdOfTheInsertedRecord", false, "Avvist av test", "TEST_CODE")
+                assertTrue(registered)
                 val status = repo.findNewestStatus(orgnr, id)
                 assertEquals(MessageStatusEnum.REJECTED, status!!.status)
                 assertEquals(id, status.id)
@@ -151,7 +203,7 @@ class TrekkInnmeldingRepositoryTest {
         }
 
     @Test
-    fun `Verify registerRejectedResponse() with xml and findNewestStatus()`() =
+    fun `Verify registerResponse() rejected with xml and findNewestStatus()`() =
         runBlocking {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123456789"
@@ -160,8 +212,10 @@ class TrekkInnmeldingRepositoryTest {
                 """<AppRec xmlns="http://www.kith.no/xmlstds/apprec/2004-11-21"><Status V="2" DN="Avvist"/><Error V="B720007F" DN="Avvist av test"/></AppRec>"""
             val expectedBase64 = Base64.getEncoder().encodeToString(fagmeldingXml.toByteArray())
             suspendTransaction {
-                repo.register(orgnr, id)
-                repo.registerResponse(orgnr, id, false, "Avvist av test", "TEST_CODE", fagmeldingXml)
+                var registered = repo.register(orgnr, id, payload)
+                assertTrue(registered)
+                registered = repo.registerResponse(orgnr, id, false, "Avvist av test", "TEST_CODE", fagmeldingXml)
+                assertTrue(registered)
                 val status = repo.findNewestStatus(orgnr, id)
                 assertEquals(MessageStatusEnum.REJECTED, status!!.status)
                 assertEquals("Avvist av test", status.rejectionDescription)
