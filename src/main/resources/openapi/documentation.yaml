@@ -37,7 +37,9 @@ paths:
         content:
           application/xml:
             schema:
-              type: string
+              type: object
+              xml:
+                name: MsgHead
             examples:
               trekkopplysning:
                 summary: Innrapportering av nytt trekk
