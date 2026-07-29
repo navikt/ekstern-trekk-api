@@ -1,6 +1,6 @@
 package no.nav.trekkapi.innmelding
 
-import no.nav.trekkapi.api.MessageStatus
+import no.nav.trekkapi.api.MessageStatusDto
 import no.nav.trekkapi.configuration.TrekkopplysningMq
 import no.nav.trekkapi.fellesformat.marshalTrekkopplysning
 import no.nav.trekkapi.log
@@ -22,7 +22,7 @@ class TrekkInnmeldingService(
     suspend fun getStatus(
         orgnr: String,
         id: String,
-    ): MessageStatus? = innrapporteringRepository.findNewestStatus(orgnr, id)
+    ): MessageStatusDto? = innrapporteringRepository.findNewestStatus(orgnr, id)
 
     suspend fun register(
         orgnr: String,
@@ -46,7 +46,9 @@ class TrekkInnmeldingService(
         log.debug("Sending in trekkopplysning with body: $messageBody")
         jmSclient.sendMessage(queue, messageBody)
 
-        innrapporteringRepository.register(orgnr, id)
+        if (!innrapporteringRepository.register(orgnr, id, messageBody)) {
+            log.warn("Inserted count from DB for trekkopplysning (messageId: '$id', orgnr: '$orgnr') was not 1 as expected")
+        }
     }
 
     fun verifyConnection() {

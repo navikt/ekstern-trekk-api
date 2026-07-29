@@ -6,7 +6,7 @@ import no.nav.trekkapi.util.InstantSerializer
 import java.time.Instant
 
 @Serializable
-data class MessageStatus(
+data class MessageStatusDto(
     val id: String,
     val status: MessageStatusEnum,
     @Serializable(with = InstantSerializer::class)
@@ -21,7 +21,7 @@ data class MessageStatus(
 fun pending(
     id: String,
     submittedAt: Instant,
-) = MessageStatus(
+) = MessageStatusDto(
     id = id,
     status = MessageStatusEnum.PENDING,
     submittedAt = submittedAt,
@@ -33,7 +33,7 @@ fun accepted(
     submittedAt: Instant,
     receivedAt: Instant,
     responseXml: String? = null,
-) = MessageStatus(
+) = MessageStatusDto(
     id = id,
     status = MessageStatusEnum.ACCEPTED,
     submittedAt = submittedAt,
@@ -48,7 +48,7 @@ fun rejected(
     description: String,
     code: String? = null,
     responseXml: String? = null,
-) = MessageStatus(
+) = MessageStatusDto(
     id = id,
     status = MessageStatusEnum.REJECTED,
     submittedAt = submittedAt,
