@@ -1,7 +1,7 @@
 plugins {
-    kotlin("jvm") version "2.4.0"
+    kotlin("jvm") version "2.4.10"
     id("io.ktor.plugin") version "3.5.1"
-    kotlin("plugin.serialization") version "2.4.0"
+    kotlin("plugin.serialization") version "2.4.10"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 
@@ -81,7 +81,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains.kotlin:kotlin-reflect:2.4.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:2.4.10")
     implementation(libs.logback)
     implementation(libs.logstash)
     implementation(libs.emottak.payload.xsd) // brukes for å få Fellesformat. Kan evt erstattes med lib utenfor emottak
