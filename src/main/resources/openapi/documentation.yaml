@@ -159,6 +159,122 @@ paths:
               example:
                 message: "Unexpected error"
 
+  /test/innrapportering:
+    post:
+      summary: Send trekkopplysningsmelding (test, uten autentisering)
+      description: |
+        Testversjon av `POST /v1/innrapportering`. Krever ikke Maskinporten-token.
+        Orgnr er hardkodet til `924616733`. Sender meldingen til behandling på samme måte som produksjonsendepunktet.
+      operationId: postTestInnrapportering
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              type: string
+            examples:
+              trekkopplysning:
+                summary: Innrapportering av nytt trekk
+                value: |
+                  <MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24">
+                    <MsgInfo>
+                      <Type V="INNRAPPORTERING_TREKK" DN="Innrapportering av trekk til NAV"/>
+                      <MIGversion>v1.2 2006-05-24</MIGversion>
+                      <GenDate>2026-03-06T15:22:35Z</GenDate>
+                      <MsgId>7f41c4e9-b6bd-44a3-822b-622332b4e421</MsgId>
+                      <Ack V="N" DN="Nei"/>
+                      <Sender>
+                        <Organisation>
+                          <OrganisationName>TEST ORG</OrganisationName>
+                          <Ident>
+                            <Id>000000000</Id>
+                            <TypeId V="ENH" S="2.16.578.1.12.4.1.1.9051" DN="Organisasjonsnummer"/>
+                          </Ident>
+                        </Organisation>
+                      </Sender>
+                      <Receiver>
+                        <Organisation>
+                          <OrganisationName>NAV IKT</OrganisationName>
+                          <Ident>
+                            <Id>79768</Id>
+                            <TypeId V="HER" S="2.16.578.1.12.4.1.1.9051" DN="HER-id"/>
+                          </Ident>
+                        </Organisation>
+                      </Receiver>
+                      <Patient>
+                        <FamilyName>SEILBÅT</FamilyName>
+                        <GivenName>DEMOKRATISK</GivenName>
+                        <Sex V="2" DN="Kvinne"/>
+                        <Ident>
+                          <Id>12345678910</Id>
+                          <TypeId V="FNR" S="2.16.578.1.12.4.1.1.8116" DN="Fødselsnummer"/>
+                        </Ident>
+                      </Patient>
+                    </MsgInfo>
+                    <Document>
+                      <ContentDescription>Innrapportering av trekk til NAV</ContentDescription>
+                      <RefDoc>
+                        <IssueDate V="2026-03-06T15:22:35Z"/>
+                        <MsgType V="XML" DN="XML-instans"/>
+                        <Content>
+                          <InnrapporteringTrekk
+                            xmlns="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                            xsi:schemaLocation="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04 InnrapporteringTrekk-2010-02-04.xsd">
+                            <Aksjonskode DN="Nytt trekk" V="NY"/>
+                            <Identifisering>
+                              <KreditorTrekkId>ee387905-4b77-47c2-9fba-e21847525c3e</KreditorTrekkId>
+                              <DebitorId>
+                                <Id>12345678901</Id>
+                                <TypeId DN="Fødselsnummer" S="2.16.578.1.12.4.1.1.8116" V="FNR"/>
+                              </DebitorId>
+                            </Identifisering>
+                            <Trekk>
+                              <KodeTrekktype DN="Vederlagstrekk" V="VEDE"/>
+                              <KodeTrekkAlternativ DN="Løpende trekk månedssats" V="LOPM"/>
+                              <Sats V="21573"/>
+                            </Trekk>
+                            <Periode><PeriodeFomDato>2026-04-01</PeriodeFomDato></Periode>
+                            <Kreditor><TSSId>tssId</TSSId></Kreditor>
+                          </InnrapporteringTrekk>
+                        </Content>
+                      </RefDoc>
+                    </Document>
+                  </MsgHead>
+      responses:
+        "202":
+          description: Meldingen er mottatt og sendt til behandling
+          headers:
+            Location:
+              description: Relativ URL til statusressursen for den innsendte meldingen. ID-en er en UUID.
+              schema:
+                type: string
+              example: /v1/innrapportering/7f41c4e9-b6bd-44a3-822b-622332b4e421
+        "400":
+          description: Forespørselen mangler påkrevd innhold eller har feil Content-Type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Content-Type must be application/xml"
+        "422":
+          description: XML-innholdet er ikke gyldig i henhold til forventet skjema
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Invalid XML format"
+        "500":
+          description: Uventet feil på tjenersiden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Unexpected error"
+
   /v1/innrapportering/{id}:
     get:
       summary: Hent behandlingsstatus
