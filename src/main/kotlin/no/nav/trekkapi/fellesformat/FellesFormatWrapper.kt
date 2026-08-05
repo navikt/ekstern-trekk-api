@@ -27,6 +27,7 @@ fun createEIFellesFormatTrekkopplysning(
     fellesFormatFactory.createEIFellesformat().apply {
         mottakenhetBlokk =
             createFellesFormatMottakEnhetBlokk(authData, inputTrekkopplysning.conversationId, inputTrekkopplysning.messageId, timestamp)
+        msgHead = inputTrekkopplysning.payload.unmarshalMsgHead()
     }
 
 const val TREKKOPPLYSNING_SERVICE = "Trekkopplysning"
