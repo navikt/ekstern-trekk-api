@@ -24,7 +24,15 @@ class TrekkInnmeldingService(
         id: String,
     ): MessageStatusDto? = innrapporteringRepository.findNewestStatus(orgnr, id)
 
-    suspend fun listLast(length: Int): List<MessageStatusRow> = innrapporteringRepository.getLast(length)
+    suspend fun listLast(length: Int): List<String> {
+        val rows = innrapporteringRepository.getLast(length)
+        return rows
+            .stream()
+            .map {
+                it.messageId + ";" + it.processedAt.toString() + ";" + it.latestStatus + ";" + it.responseCode + ";" +
+                    it.responseDescription
+            }.toList()
+    }
 
     suspend fun register(
         orgnr: String,

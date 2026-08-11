@@ -119,7 +119,7 @@ fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         val length = call.pathParameters["length"]!!
         log.debug("TEST Vis de siste $length mottatte meldingene")
 
-        val list: List<MessageStatusRow> = trekkInnmeldingService.listLast(length.toInt())
+        val list: List<String> = trekkInnmeldingService.listLast(length.toInt())
         if (list.isNotEmpty()) {
             log.info("Returnerer de siste $length mottatte meldingene")
             call.respond(HttpStatusCode.OK, list)
