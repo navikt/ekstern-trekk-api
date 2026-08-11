@@ -24,6 +24,8 @@ class TrekkInnmeldingService(
         id: String,
     ): MessageStatusDto? = innrapporteringRepository.findNewestStatus(orgnr, id)
 
+    suspend fun listLast(length: Int): List<MessageStatusRow> = innrapporteringRepository.getLast(length)
+
     suspend fun register(
         orgnr: String,
         body: String,

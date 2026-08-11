@@ -18,6 +18,7 @@ import no.nav.trekkapi.persistence.table.MessageStatusTable.responseDescription
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseReceivedAt
 import no.nav.trekkapi.persistence.table.MessageStatusTable.responseXml
 import no.nav.trekkapi.util.nowOsloToInstant
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
@@ -150,6 +151,38 @@ class TrekkInnmeldingRepository(
                             requestXml = it[requestXml],
                         )
                     }.singleOrNull()
+            }
+        }
+
+    suspend fun getLast(length: Int): List<MessageStatusRow> =
+        withContext(Dispatchers.IO) {
+            transaction(database.db) {
+                MessageStatusTable
+                    .select(
+                        orgNr,
+                        messageId,
+                        processedAt,
+                        latestStatus,
+                        responseReceivedAt,
+                        responseDescription,
+                        responseCode,
+                        responseXml,
+                        requestXml,
+                    ).orderBy(processedAt to SortOrder.DESC)
+                    .limit(length)
+                    .map {
+                        MessageStatusRow(
+                            orgNr = it[orgNr],
+                            messageId = it[messageId],
+                            processedAt = it[processedAt],
+                            latestStatus = it[latestStatus],
+                            responseReceivedAt = it[responseReceivedAt],
+                            responseDescription = it[responseDescription],
+                            responseCode = it[responseCode],
+                            responseXml = it[responseXml],
+                            requestXml = it[requestXml],
+                        )
+                    }
             }
         }
 }

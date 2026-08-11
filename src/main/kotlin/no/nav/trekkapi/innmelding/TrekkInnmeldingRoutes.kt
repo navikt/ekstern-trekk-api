@@ -115,6 +115,20 @@ fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         }
     }
 
+    get("/test/listlast/{length}") {
+        val length = call.pathParameters["length"]!!
+        log.debug("TEST Vis de siste $length mottatte meldingene")
+
+        val list: List<MessageStatusRow> = trekkInnmeldingService.listLast(length.toInt())
+        if (list.isNotEmpty()) {
+            log.info("Returnerer de siste $length mottatte meldingene")
+            call.respond(HttpStatusCode.OK, list)
+        } else {
+            log.warn("Finnes ingen mottatte meldinger")
+            call.respond(HttpStatusCode.NotFound)
+        }
+    }
+
     get("/testMq") {
         log.info("Testing MQ......")
         trekkInnmeldingService.verifyConnection()

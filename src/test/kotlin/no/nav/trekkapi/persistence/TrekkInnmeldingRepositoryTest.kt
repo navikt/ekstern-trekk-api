@@ -228,6 +228,31 @@ class TrekkInnmeldingRepositoryTest {
                 rollback()
             }
         }
+
+    @Test
+    fun `Verify register() and lisLast()`() =
+        runBlocking {
+            val repo = TrekkInnmeldingRepository(db)
+            val orgnr = "123451111"
+            val id = "theIdOfTheInsertedRecord"
+            val orgnr2 = "123451112"
+            val id2 = "theIdOfTheInsertedRecord2"
+            suspendTransaction {
+                val registered = repo.register(orgnr, id, payload)
+                val registered2 = repo.register(orgnr2, id2, payload)
+
+                val list = repo.getLast(3)
+                assertEquals(2, list.size)
+                // descendeing order
+                val status1 = list.get(1)
+                assertEquals(MessageStatusEnum.PENDING, status1.latestStatus)
+                assertEquals(id, status1.messageId)
+                val status2 = list.get(0)
+                assertEquals(MessageStatusEnum.PENDING, status2.latestStatus)
+                assertEquals(id2, status2.messageId)
+                rollback()
+            }
+        }
 }
 
 fun PostgreSQLContainer.testConfiguration(user: String = "admin"): HikariConfig {
