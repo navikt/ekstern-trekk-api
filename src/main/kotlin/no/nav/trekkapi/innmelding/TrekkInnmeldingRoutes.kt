@@ -121,7 +121,7 @@ fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
 
         val list: String = trekkInnmeldingService.listLast(length.toInt())
         log.info("Returnerer de siste $length mottatte meldingene")
-        call.respond(HttpStatusCode.OK, list)
+        call.respondText(list, ContentType.Text.Html, HttpStatusCode.OK)
     }
 
     get("/testMq") {
