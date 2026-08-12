@@ -115,6 +115,21 @@ fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         }
     }
 
+    get("/test/innrapportering2/{org}/{id}") {
+        val id = call.pathParameters["id"]!!
+        val orgnr = call.pathParameters["org"]!!
+        log.debug("TEST Hent innrapporteringstatus/org kalt med id: $id, orgnr: $orgnr")
+
+        val status = trekkInnmeldingService.getFullStatus(orgnr, id)
+        if (status != null) {
+            log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
+            call.respond(HttpStatusCode.OK, status)
+        } else {
+            log.warn("Finnes ingen status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
+            call.respond(HttpStatusCode.NotFound)
+        }
+    }
+
     get("/test/listlast/{length}") {
         val length = call.pathParameters["length"]!!
         log.debug("TEST Vis de siste $length mottatte meldingene")
