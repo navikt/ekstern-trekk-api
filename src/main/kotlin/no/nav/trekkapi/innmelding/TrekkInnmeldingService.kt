@@ -5,6 +5,10 @@ import no.nav.trekkapi.configuration.TrekkopplysningMq
 import no.nav.trekkapi.fellesformat.marshalTrekkopplysning
 import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlin.uuid.Uuid
 
 class TrekkInnmeldingService(
@@ -24,14 +28,42 @@ class TrekkInnmeldingService(
         id: String,
     ): MessageStatusDto? = innrapporteringRepository.findNewestStatus(orgnr, id)
 
-    suspend fun listLast(length: Int): List<String> {
+    suspend fun listLast(length: Int): String {
         val rows = innrapporteringRepository.getLast(length)
-        return rows
-            .stream()
-            .map {
-                it.messageId + ";" + it.processedAt.toString() + ";" + it.latestStatus + ";" + it.responseCode + ";" +
-                    it.responseDescription
-            }.toList()
+        val htmlPrologue =
+            "<html><body><table border=\"1\">" +
+                "    <tr>" +
+                "        <th>Message ID</th>" +
+                "        <th>Orgnr</th>" +
+                "        <th>Processed at</th>" +
+                "        <th>Processing status</th>" +
+                "        <th>Rejection code</th>" +
+                "        <th>Rejection reason</th>" +
+                "        <th>Response received at</th>" +
+                "    </tr>"
+        val htmlEpilogue = "</table></body></html>"
+        var tableHtml = ""
+        for (row in rows) {
+            tableHtml = tableHtml + "<tr><td>${row.messageId}</td>" +
+                "<td>${row.orgNr}</td>" +
+                "<td>${formatTs(row.processedAt)}</td>" +
+                "<td>${row.latestStatus}</td>" +
+                "<td>${blankIfNull(row.responseCode)}</td>" +
+                "<td>${blankIfNull(row.responseDescription)}</td>" +
+                "<td>${formatTs(row.responseReceivedAt)}</td></tr>"
+        }
+        return htmlPrologue + tableHtml + htmlEpilogue
+    }
+
+    private fun formatTs(processedAt: Instant?): String {
+        if (processedAt == null) return ""
+        val dt = LocalDateTime.ofInstant(processedAt, ZoneId.systemDefault())
+        return dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    }
+
+    private fun blankIfNull(s: String?): String {
+        if (s == null) return ""
+        return s
     }
 
     suspend fun register(
