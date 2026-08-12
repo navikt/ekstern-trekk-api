@@ -71,6 +71,13 @@ class TrekkInnmeldingRepository(
         }
     }
 
+    suspend fun getFullStatus(
+        orgnr: String,
+        id: String,
+    ): MessageStatusRow? {
+        return findStatus(orgnr, id) ?: return null
+    }
+
     private suspend fun findStatus(
         orgnr: String,
         id: String,

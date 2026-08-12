@@ -28,6 +28,21 @@ class TrekkInnmeldingService(
         id: String,
     ): MessageStatusDto? = innrapporteringRepository.findNewestStatus(orgnr, id)
 
+    suspend fun getFullStatus(
+        orgnr: String,
+        id: String,
+    ): String? {
+        val status = innrapporteringRepository.getFullStatus(orgnr, id)
+        if (status == null) return null
+        return "id=${status.messageId}, orgnr=${status.orgNr}, status=${status.latestStatus}, processedAt=${formatTs(
+            status.processedAt,
+        )}, " +
+            "responseReceivedAt=${formatTs(status.responseReceivedAt)}, responseCode=${blankIfNull(status.responseCode)}, " +
+            "responseDescription=${blankIfNull(
+                status.responseDescription,
+            )}, requestXml=${status.requestXml}, responseXml=${blankIfNull(status.responseXml)}"
+    }
+
     suspend fun listLast(length: Int): String {
         val rows = innrapporteringRepository.getLast(length)
         val htmlPrologue =
