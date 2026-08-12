@@ -89,7 +89,7 @@ fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
 
     post("/test/innrapportering") {
         log.debug("TEST-Innrapportering kalt med body")
-        val orgnr = "924616733"
+        val orgnr = "974761076"
         val innmeldingXml = call.receiveText()
         log.debug("Received trekkopplysning with body: $innmeldingXml")
         innmeldingXml.validateInnmeldingXML()
@@ -104,7 +104,7 @@ fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
         val id = call.pathParameters["id"]!!
         log.debug("TEST Hent innrapporteringstatus kalt med id: $id")
 
-        val orgnr = "924616733"
+        val orgnr = "974761076"
         val status = trekkInnmeldingService.getStatus(orgnr, id)
         if (status != null) {
             log.info("Returnerer status $status for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
