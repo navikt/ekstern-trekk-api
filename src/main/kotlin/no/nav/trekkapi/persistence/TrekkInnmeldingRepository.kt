@@ -5,7 +5,10 @@ import no.nav.trekkapi.api.MessageStatusDto
 import no.nav.trekkapi.api.accepted
 import no.nav.trekkapi.api.pending
 import no.nav.trekkapi.api.rejected
+import no.nav.trekkapi.fellesformat.identifisering
+import no.nav.trekkapi.fellesformat.unmarshalMsgHead
 import no.nav.trekkapi.innmelding.MessageStatusRow
+import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.persistence.table.MessageStatusTable
 import no.nav.trekkapi.persistence.table.MessageStatusTable.latestStatus
@@ -57,7 +60,18 @@ class TrekkInnmeldingRepository(
         val encodedXml = row.responseXml?.let { Base64.getEncoder().encodeToString(it.toByteArray()) }
         return when (row.latestStatus) {
             MessageStatusEnum.PENDING -> pending(row.messageId, row.processedAt)
-            MessageStatusEnum.ACCEPTED -> accepted(row.messageId, row.processedAt, row.responseReceivedAt!!, encodedXml)
+            MessageStatusEnum.ACCEPTED -> {
+                val identifisering = row.responseXml?.let { extractIdentifisering(it) }
+                accepted(
+                    row.messageId,
+                    row.processedAt,
+                    row.responseReceivedAt!!,
+                    encodedXml,
+                    debitorId = identifisering?.debitorId?.id,
+                    navTrekkId = identifisering?.navTrekkId,
+                    kreditorTrekkId = identifisering?.kreditorTrekkId,
+                )
+            }
             MessageStatusEnum.REJECTED ->
                 rejected(
                     row.messageId,
@@ -69,6 +83,13 @@ class TrekkInnmeldingRepository(
                 )
         }
     }
+
+    // responseXml for en akseptert melding er selve MsgHead-dokumentet (jf. InnrapporteringTrekk-2010-02-04.xsd).
+    // Identifiseringsfeltene hentes ut best-effort slik at de kan eksponeres i JSON-responsen.
+    private fun extractIdentifisering(responseXml: String) =
+        runCatching { responseXml.unmarshalMsgHead().identifisering() }
+            .onFailure { log.warn("Kunne ikke hente ut Identifisering fra responseXml", it) }
+            .getOrNull()
 
     private suspend fun findStatus(
         orgnr: String,

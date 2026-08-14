@@ -150,6 +150,27 @@ class TrekkInnmeldingRepositoryTest {
         }
 
     @Test
+    fun `Verify registerResponse() accepted with InnrapporteringTrekk xml exposes identifisering fields`() =
+        runBlocking {
+            val repo = TrekkInnmeldingRepository(db)
+            val orgnr = "123456789"
+            val id = "theIdOfTheInsertedRecord"
+            val fagmeldingXml = this::class.java.getResource("/trekk-response.xml")?.readText() ?: ""
+            suspendTransaction {
+                var registered = repo.register(orgnr, id, payload)
+                assertTrue(registered)
+                registered = repo.registerResponse(orgnr, id, true, xml = fagmeldingXml)
+                assertTrue(registered)
+                val status = repo.findNewestStatus(orgnr, id)
+                assertEquals(MessageStatusEnum.ACCEPTED, status!!.status)
+                assertEquals("22478832862", status.debitorId)
+                assertEquals("0014037659", status.navTrekkId)
+                assertEquals("019ff59b-da0b-7591-8253-8", status.kreditorTrekkId)
+                rollback()
+            }
+        }
+
+    @Test
     fun `registerResponse() should return false when unknown ID`() =
         runBlocking {
             val repo = TrekkInnmeldingRepository(db)
