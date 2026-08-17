@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24">
+    <MsgInfo>
+        <Type DN="Innrapportering av trekk til NAV retur" V="INNRAPPORTERING_TREKK_RETUR"/>
+        <MIGversion>v1.2 2006-05-24</MIGversion>
+        <GenDate>2026-08-14T11:06:21</GenDate>
+        <MsgId>f2f0f2f6-f0f8-f1f4-f1f1-f0f6f2f1f5f6</MsgId>
+        <Ack DN="Nei" V="N"/>
+        <ConversationRef>
+            <RefToParent>08b7e42b-4b4e-4232-b681-1f00a49ebce8</RefToParent>
+            <RefToConversation>08b7e42b-4b4e-4232-b681-1f00a49ebce8</RefToConversation>
+        </ConversationRef>
+        <Sender>
+            <Organisation>
+                <OrganisationName>NAV IKT</OrganisationName>
+                <Ident>
+                    <Id>79768</Id>
+                    <TypeId DN="HER-id" S="2.16.578.1.12.4.1.1.9051" V="HER"/>
+                </Ident>
+            </Organisation>
+        </Sender>
+        <Receiver>
+            <Organisation>
+                <OrganisationName>Innkrevingsmyndigheten</OrganisationName>
+                <Ident>
+                    <Id>8139944</Id>
+                    <TypeId DN="HER-id" S="2.16.578.1.12.4.1.1.9051" V="ENH"/>
+                </Ident>
+            </Organisation>
+        </Receiver>
+    </MsgInfo>
+    <Document>
+        <ContentType V="XML"/>
+        <ContentDescription>SV:Innrapportering av trekk til NAV</ContentDescription>
+        <RefDoc>
+            <MsgType DN="XML-instans" V="XML"/>
+            <Content>
+                <InnrapporteringTrekk xmlns="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04"
+                                      xmlns:fk1="http://www.kith.no/xmlstds/felleskomponent1"
+                                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                      xsi:schemaLocation="http://www.kith.no/xmlstds/nav/innrapporteringtrekk/2010-02-04 InnrapporteringTrekk-2010-02-04.xsd">
+                    <Identifisering>
+                        <KreditorTrekkId>019ff59b-da0b-7591-8253-8</KreditorTrekkId>
+                        <NavTrekkId>0014037659</NavTrekkId>
+                        <DebitorId>
+                            <fk1:Id>22478832862</fk1:Id>
+                            <fk1:TypeId V="FNR"/>
+                        </DebitorId>
+                    </Identifisering>
+                    <Periode>
+                        <PeriodeFomDato>2026-09-01</PeriodeFomDato>
+                    </Periode>
+                    <Kreditor>
+                        <TSSId>80001018463</TSSId>
+                        <OrgNr>
+                            <fk1:Id>00936295266</fk1:Id>
+                            <fk1:TypeId V="ENH"/>
+                        </OrgNr>
+                        <Navn>INNKREVINGSMYNDIGHETEN</Navn>
+                        <Adresse>
+                            <fk1:StreetAdr>Postboks 455</fk1:StreetAdr>
+                            <fk1:PostalCode>8601</fk1:PostalCode>
+                        </Adresse>
+                        <Ref>TEST_1208_KB_3</Ref>
+                        <Kontonr>76940569814</Kontonr>
+                        <KID></KID>
+                    </Kreditor>
+                </InnrapporteringTrekk>
+            </Content>
+        </RefDoc>
+    </Document>
+</MsgHead>
