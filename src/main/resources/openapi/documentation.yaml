@@ -544,3 +544,21 @@ components:
             eller en frittstående `AppRec` ([AppRec-v1-2004-11-21.xsd](/schemas/AppRec-v1-2004-11-21.xsd)).
             Settes kun når status er `ACCEPTED` eller `REJECTED`.
           example: PEVJRmVsbGVzZm9ybWF0PjxzdGF0dXM+T0s8L3N0YXR1cz48L0VJRmVsbGVzZm9ybWF0Pg==
+        debitorId:
+          type: string
+          description: |
+            Identifikator for debitor, hentet fra `Identifisering/DebitorId` i
+            `InnrapporteringTrekk`-innholdet i `responseXml`. Settes kun når status er `ACCEPTED` og feltet finnes i responsen.
+          example: "22478832862"
+        navTrekkId:
+          type: string
+          description: |
+            Navs unike identifikator for trekket, hentet fra `Identifisering/NavTrekkId` i
+            `InnrapporteringTrekk`-innholdet i `responseXml`. Settes kun når status er `ACCEPTED` og feltet finnes i responsen.
+          example: "0014037659"
+        kreditorTrekkId:
+          type: string
+          description: |
+            Kreditors egen identifikator for trekket, hentet fra `Identifisering/KreditorTrekkId` i
+            `InnrapporteringTrekk`-innholdet i `responseXml`. Settes kun når status er `ACCEPTED` og feltet finnes i responsen.
+          example: "019ff59b-da0b-7591-8253-8"

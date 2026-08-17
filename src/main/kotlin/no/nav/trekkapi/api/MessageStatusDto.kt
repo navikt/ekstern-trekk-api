@@ -16,6 +16,9 @@ data class MessageStatusDto(
     val rejectionDescription: String? = null,
     val rejectionCode: String? = null,
     val responseXml: String? = null,
+    val debitorId: String? = null,
+    val navTrekkId: String? = null,
+    val kreditorTrekkId: String? = null,
 )
 
 fun pending(
@@ -33,12 +36,18 @@ fun accepted(
     submittedAt: Instant,
     receivedAt: Instant,
     responseXml: String? = null,
+    debitorId: String? = null,
+    navTrekkId: String? = null,
+    kreditorTrekkId: String? = null,
 ) = MessageStatusDto(
     id = id,
     status = MessageStatusEnum.ACCEPTED,
     submittedAt = submittedAt,
     updatedAt = receivedAt,
     responseXml = responseXml,
+    debitorId = debitorId,
+    navTrekkId = navTrekkId,
+    kreditorTrekkId = kreditorTrekkId,
 )
 
 fun rejected(
@@ -48,6 +57,9 @@ fun rejected(
     description: String,
     code: String? = null,
     responseXml: String? = null,
+    debitorId: String? = null,
+    navTrekkId: String? = null,
+    kreditorTrekkId: String? = null,
 ) = MessageStatusDto(
     id = id,
     status = MessageStatusEnum.REJECTED,
@@ -56,4 +68,7 @@ fun rejected(
     rejectionDescription = description,
     rejectionCode = code,
     responseXml = responseXml,
+    debitorId = debitorId,
+    navTrekkId = navTrekkId,
+    kreditorTrekkId = kreditorTrekkId,
 )
