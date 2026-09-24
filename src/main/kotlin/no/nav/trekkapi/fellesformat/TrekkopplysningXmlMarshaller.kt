@@ -2,8 +2,11 @@ package no.nav.trekkapi.fellesformat
 
 import jakarta.xml.bind.JAXBContext.newInstance
 import no.kith.xmlstds.msghead._2006_05_24.MsgHead
+import no.kith.xmlstds.nav.innrapporteringtrekk._2010_02_04.Identifisering
+import no.kith.xmlstds.nav.innrapporteringtrekk._2010_02_04.InnrapporteringTrekk
 import no.trygdeetaten.xml.eiff._1.EIFellesformat
 import org.apache.cxf.staxutils.DelegatingXMLStreamWriter
+import org.w3c.dom.Element
 import java.io.StringWriter
 import javax.xml.stream.XMLOutputFactory
 import javax.xml.stream.XMLStreamWriter
@@ -23,9 +26,31 @@ val msgheadXmlMarshaller =
         ),
     )
 
+// Egen, isolert kontekst kun brukt til å tolke InnrapporteringTrekk-innholdet i en respons-MsgHead.
+// Holdes bevisst adskilt fra msgheadXmlMarshaller/fellesformatXmlMarshaller over, siden disse også
+// brukes til å parse/validere innkommende meldinger som ikke alltid er strengt navnerom-kvalifisert.
+val innrapporteringTrekkXmlMarshaller =
+    XmlMarshaller(
+        newInstance(
+            no.kith.xmlstds.nav.innrapporteringtrekk._2010_02_04.ObjectFactory::class.java,
+        ),
+    )
+
 fun String.unmarshalFellesformat(): EIFellesformat = fellesformatXmlMarshaller.unmarshal(this, EIFellesformat::class.java)
 
 fun String.unmarshalMsgHead(): MsgHead = msgheadXmlMarshaller.unmarshal(this, MsgHead::class.java)
+
+// Innholdet i Document/RefDoc/Content er deklarert som xsd:any (lax=true) i MsgHead-skjemaet. Siden
+// msgheadXmlMarshaller sin kontekst ikke kjenner InnrapporteringTrekk-pakken, kommer dette innholdet
+// tilbake som rå DOM-elementer, som vi her tolker eksplisitt via en egen JAXB-kontekst.
+fun MsgHead.identifisering(): Identifisering? =
+    document
+        .mapNotNull { it.refDoc?.content }
+        .flatMap { it.any }
+        .filterIsInstance<Element>()
+        .firstOrNull { it.localName == "InnrapporteringTrekk" }
+        ?.let { innrapporteringTrekkXmlMarshaller.toDomainObject(it) as? InnrapporteringTrekk }
+        ?.identifisering
 
 fun marshalTrekkopplysning(fellesFormat: EIFellesformat): String {
     val writer = StringWriter()

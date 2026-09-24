@@ -97,4 +97,4 @@ spec:
     - name: TREKKOPPL_MQ_CHANNEL
       value: "Q1_EMOTTAK_ASYNCH"
     - name: TREKKOPPL_MQ_QUEUE
-      value: "QA.Q1_231.OB04_INNRAPP_TREKK"
+      value: "QA.Q2_231.OB04_INNRAPP_TREKK"
