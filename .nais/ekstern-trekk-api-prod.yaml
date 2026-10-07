@@ -1,0 +1,99 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: "ekstern-trekk-api"
+  namespace: "team-emottak"
+  labels:
+    "team": "team-emottak"
+spec:
+  maskinporten:
+    enabled: true
+    scopes:
+      exposes:
+        # nav:utbetaling/trekkopplysning/innmelding
+        - enabled: true
+          product: "utbetaling"
+          separator: "/"
+          name: "trekkopplysning/innmelding"
+          consumers:
+            - name: "Innkrevingsmyndigheten"
+              orgno: "924616733"
+            - name: "Skatteetaten"
+              orgno: "974761076"
+            - name: "Innkrevingsmyndigheten - oppdragskrav"
+              orgno: "971648198"
+  webproxy: true
+  image: {{image}}
+  liveness:
+    path: "/internal/health/liveness"
+    port: 8080
+    initialDelay: 30
+    timeout: 10
+    failureThreshold: 10
+  readiness:
+    path: "/internal/health/readiness"
+    port: 8080
+    initialDelay: 30
+    timeout: 10
+    failureThreshold: 10
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+      destinations:
+        - id: "grafana-lgtm"
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  replicas:
+    min: 1
+    max: 4
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+  ingresses:
+    - "https://ekstern-trekk-api.ekstern.nav.no"
+    - "https://ekstern-trekk-api.intern.nav.no"
+  envFrom:
+    - secret: ekstern-trekk-api-secret
+    - configmap: ekstern-trekk-api-config
+  kafka:
+    pool: nav-prod
+  accessPolicy:
+    outbound:
+      external:
+        - host: mpls04.adeo.no
+          ports:
+            - port: 1414
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_18
+        name: ekstern-trekk-api-db
+        databases:
+          - name: ekstern-trekk-api-db
+            envVarPrefix: POSTGRES
+        diskAutoresize: true
+        diskType: SSD
+        tier: db-custom-1-3840
+        cascadingDelete: false
+  env:
+    - name: EMOTTAK_LOGGING_LEVEL
+      value: INFO
+    - name: TREKKOPPL_MQ_HOST
+      value: "mpls04.adeo.no"
+    - name: TREKKOPPL_MQ_PORT
+      value: "1414"
+    - name: TREKKOPPL_MQ_QMGR
+      value: "MPLS04"
+    - name: TREKKOPPL_MQ_CHANNEL
+      value: "P_EMOTTAK_ASYNCH" # TODO P_EBMSARU?
+    - name: TREKKOPPL_MQ_QUEUE
+      value: "QA.P231.OB04_INNRAPP_TREKK"

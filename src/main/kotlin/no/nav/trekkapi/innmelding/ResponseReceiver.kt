@@ -37,7 +37,6 @@ suspend fun startResponseReceiver(
     KafkaReceiver(receiverSettings)
         .receive(topic)
         .map { record ->
-            log.debug("Processing record: {}", record)
             val mottattXml = record.value().toString(Charsets.UTF_8)
             val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponseAsFellesFormat(mottattXml)
             val fagmeldingXml = trekkInnmeldingModel.getFagmeldingXmlFraFellesformat(mottattXml, fellesFormat)
@@ -60,7 +59,7 @@ suspend fun startResponseReceiver(
                     val kode = trekkInnmeldingModel.getRejectionCode(fellesFormat)
                     if (trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, false, beskrivelse, kode, fagmeldingXml)) {
                         log.info(
-                            "Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: avvist, beskrivelse: $beskrivelse",
+                            "Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: avvist",
                         )
                     } else {
                         log.warn(

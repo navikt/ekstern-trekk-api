@@ -22,9 +22,11 @@ object MessageStatusTable : Table("message_status") {
 
     val responseCode: Column<String?> = varchar("response_code", 64).nullable()
 
-    val responseXml: Column<String?> = text("response_xml").nullable()
+    val debitorId: Column<String?> = varchar("debitor_id", 32).nullable()
 
-    val requestXml: Column<String?> = text("request_xml").nullable()
+    val navTrekkId: Column<String?> = varchar("nav_trekk_id", 32).nullable()
+
+    val kreditorTrekkId: Column<String?> = varchar("kreditor_trekk_id", 256).nullable()
 
     override val primaryKey = PrimaryKey(messageId)
 }
