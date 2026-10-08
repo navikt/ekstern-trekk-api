@@ -24,7 +24,6 @@ spec:
               orgno: "974761076"
             - name: "Innkrevingsmyndigheten - oppdragskrav"
               orgno: "971648198"
-  webproxy: true
   image: {{image}}
   liveness:
     path: "/internal/health/liveness"
@@ -46,7 +45,6 @@ spec:
         - id: "grafana-lgtm"
     logging:
       destinations:
-        - id: elastic
         - id: loki
   prometheus:
     enabled: true

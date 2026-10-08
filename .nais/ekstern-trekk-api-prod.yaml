@@ -44,7 +44,6 @@ spec:
         - id: "grafana-lgtm"
     logging:
       destinations:
-        - id: elastic
         - id: loki
   prometheus:
     enabled: true
@@ -60,7 +59,7 @@ spec:
       cpu: "100m"
       memory: "256Mi"
   ingresses:
-    - "https://ekstern-trekk-api.ekstern.nav.no"
+    - "https://ekstern-trekk-api.nav.no"
     - "https://ekstern-trekk-api.intern.nav.no"
   envFrom:
     - secret: ekstern-trekk-api-secret
@@ -94,6 +93,6 @@ spec:
     - name: TREKKOPPL_MQ_QMGR
       value: "MPLS04"
     - name: TREKKOPPL_MQ_CHANNEL
-      value: "P_EMOTTAK_ASYNCH" # TODO P_EBMSARU?
+      value: "P_EKST_TREKK_API"
     - name: TREKKOPPL_MQ_QUEUE
       value: "QA.P231.OB04_INNRAPP_TREKK"

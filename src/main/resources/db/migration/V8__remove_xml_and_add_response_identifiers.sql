@@ -1,7 +1,7 @@
 ALTER TABLE message_status
-    ADD COLUMN debitor_id VARCHAR(32),
-    ADD COLUMN nav_trekk_id VARCHAR(32),
-    ADD COLUMN kreditor_trekk_id VARCHAR(256);
+    ADD COLUMN debitor_id TEXT,
+    ADD COLUMN nav_trekk_id TEXT,
+    ADD COLUMN kreditor_trekk_id TEXT;
 
 ALTER TABLE message_status
     DROP COLUMN response_xml,
