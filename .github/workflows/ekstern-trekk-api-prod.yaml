@@ -1,4 +1,4 @@
-name: Deploy Ekstern trekk-api to prod
+name: Deploy Ekstern trekk-api to dev
 
 on:
   workflow_dispatch:
@@ -58,7 +58,7 @@ jobs:
     outputs:
         image: ${{ steps.docker-ekstern-trekk-api.outputs.image }}
   deploy-ekstern-trekk-api:
-    name: Deploy ekstern-trekk-api til prod-miljø
+    name: Deploy ekstern-trekk-api til dev-miljø
     needs: build-and-push
     permissions:
       contents: "read"
@@ -68,6 +68,6 @@ jobs:
     - uses: actions/checkout@v7.0.1
     - uses: nais/deploy/actions/deploy@v3
       env:
-        CLUSTER: prod-gcp
-        RESOURCE: .nais/ekstern-trekk-api-prod.yaml
+        CLUSTER: dev-gcp
+        RESOURCE: .nais/ekstern-trekk-api-dev.yaml
         VAR: image=${{ needs.build-and-push.outputs.image }}
