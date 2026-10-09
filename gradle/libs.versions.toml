@@ -14,7 +14,7 @@ hikari = "7.1.0"
 flyway = "13.9.0"
 ibm-mq = "10.0.0.5"
 jackson2 = "2.22.3"
-jackson3 = "3.2.0"
+jackson3 = "3.2.3"
 
 [libraries]
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
