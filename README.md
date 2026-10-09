@@ -66,6 +66,26 @@ Poll til status er `ACCEPTED` eller `REJECTED`.
 
 ## Utvikling
 
+### Deploy
+
+Workflowen **Deploy Ekstern trekk-api** deployer applikasjonen.
+Start den fra GitHub Actions med **Run workflow**, velg kildebranch i feltet
+`branch` og velg `environment` (`dev` eller `prod`, standard er `dev`).
+**Use workflow from** velger hvilken branch workflow-definisjonen hentes fra;
+`branch` velger hvilken branch som bygges og deployes.
+
+Push til `main` bygger ett image og deployer til både `dev` og `prod`, som tidligere.
+Image og applikasjonsmanifestet hentes fra samme commit på valgt branch.
+PR-sjekker og automatiske image-oppdateringer har fortsatt egne workflows.
+
+Kafka-topic deployes separat med **Deploy Kafka topics** (`deploy-kafka.yaml`).
+Velg branch med **Use workflow from** og kryss av for `dev`, `prod` eller begge.
+Begge er av som standard; uten avkryssing hoppes deploy over.
+Workflowen bruker manifestene fra valgt branch og kjører bare manuelt.
+Push til `main` deployer ikke Kafka-topic, heller ikke ved manifestendringer.
+Kjør Kafka-workflowen ved opprettelse av topic eller endringer i konfigurasjon/ACL,
+før applikasjonsdeploy dersom applikasjonen er avhengig av endringen.
+
 ### Kjøre lokalt
 
 1. Start `RunLocalContainers` i IDEen.

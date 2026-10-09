@@ -43,10 +43,9 @@ class TrekkInnmeldingService(
 //        val messageBody = fellesformatXmlBuilder.buildXml(fellesformat.mottakenhetBlokk, body.toByteArray())
         val messageBody = marshalTrekkopplysning(fellesformat)
 
-        log.debug("Sending in trekkopplysning with body: $messageBody")
         jmSclient.sendMessage(queue, messageBody)
 
-        if (!innrapporteringRepository.register(orgnr, id, messageBody)) {
+        if (!innrapporteringRepository.register(orgnr, id)) {
             log.warn("Inserted count from DB for trekkopplysning (messageId: '$id', orgnr: '$orgnr') was not 1 as expected")
         }
     }

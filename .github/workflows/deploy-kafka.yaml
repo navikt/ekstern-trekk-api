@@ -1,0 +1,38 @@
+name: Deploy Kafka topics
+
+on:
+  workflow_dispatch:
+    inputs:
+      dev:
+        description: Deploy Kafka topic to dev
+        required: false
+        default: false
+        type: boolean
+      prod:
+        description: Deploy Kafka topic to prod
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  deploy:
+    name: Deploy Kafka topic to ${{ matrix.environment }}
+    if: ${{ inputs.dev || inputs.prod }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: ${{ fromJSON(inputs.dev && inputs.prod && '["dev","prod"]' || inputs.dev && '["dev"]' || '["prod"]') }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+      - name: Deploy Kafka topic
+        uses: nais/deploy/actions/deploy@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLUSTER: ${{ matrix.environment }}-gcp
+          RESOURCE: .nais/kafka-${{ matrix.environment }}.yaml

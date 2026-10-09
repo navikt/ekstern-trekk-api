@@ -16,8 +16,6 @@ spec:
           separator: "/"
           name: "trekkopplysning/innmelding"
           consumers:
-            - name: "Pathfinder" # TEST
-              orgno: "929447395"
             - name: "Innkrevingsmyndigheten"
               orgno: "924616733"
             - name: "Skatteetaten"
@@ -51,7 +49,7 @@ spec:
     path: /internal/prometheus
   replicas:
     min: 1
-    max: 1
+    max: 4
   resources:
     limits:
       cpu: "1000m"
@@ -60,19 +58,19 @@ spec:
       cpu: "100m"
       memory: "256Mi"
   ingresses:
-    - "https://ekstern-trekk-api.ekstern.dev.nav.no"
-    - "https://ekstern-trekk-api.intern.dev.nav.no"
+    - "https://ekstern-trekk-api.nav.no"
+    - "https://ekstern-trekk-api.intern.nav.no"
   envFrom:
     - secret: ekstern-trekk-api-secret
     - configmap: ekstern-trekk-api-config
   kafka:
-    pool: nav-dev
+    pool: nav-prod
   accessPolicy:
     outbound:
       external:
-        - host: b27apvl222.preprod.local
+        - host: mpls04.adeo.no
           ports:
-            - port: 1413
+            - port: 1414
   gcp:
     sqlInstances:
       - type: POSTGRES_18
@@ -80,19 +78,20 @@ spec:
         databases:
           - name: ekstern-trekk-api-db
             envVarPrefix: POSTGRES
-        diskAutoresize: false
+        diskAutoresize: true
         diskType: SSD
-        tier: db-f1-micro
+        tier: db-custom-1-3840
+        cascadingDelete: false
   env:
     - name: EMOTTAK_LOGGING_LEVEL
-      value: DEBUG
+      value: INFO
     - name: TREKKOPPL_MQ_HOST
-      value: "mqls04.preprod.local"
+      value: "mpls04.adeo.no"
     - name: TREKKOPPL_MQ_PORT
-      value: "1413"
+      value: "1414"
     - name: TREKKOPPL_MQ_QMGR
-      value: "MQLS04"
+      value: "MPLS04"
     - name: TREKKOPPL_MQ_CHANNEL
-      value: "Q1_EMOTTAK_ASYNCH"
+      value: "P_EKST_TREKK_API"
     - name: TREKKOPPL_MQ_QUEUE
-      value: "QA.Q2_231.OB04_INNRAPP_TREKK"
+      value: "QA.P231.OB04_INNRAPP_TREKK"

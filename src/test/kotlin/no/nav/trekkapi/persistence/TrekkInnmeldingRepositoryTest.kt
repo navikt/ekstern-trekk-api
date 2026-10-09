@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.testcontainers.postgresql.PostgreSQLContainer
-import java.util.Base64
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -22,7 +21,6 @@ import kotlin.test.assertTrue
 class TrekkInnmeldingRepositoryTest {
     lateinit var dbContainer: PostgreSQLContainer
     lateinit var db: Database
-    val payload = this::class.java.getResource("/trekkopplysning_innmelding.xml")?.readText() ?: ""
 
     @BeforeAll
     fun setup() {
@@ -46,7 +44,7 @@ class TrekkInnmeldingRepositoryTest {
             val orgnr = "123451111"
             val id = "theIdOfTheInsertedRecord"
             suspendTransaction {
-                val registered = repo.register(orgnr, id, payload)
+                val registered = repo.register(orgnr, id)
                 assertTrue(registered)
                 val status = repo.findNewestStatus(orgnr, id)
                 assertEquals(MessageStatusEnum.PENDING, status!!.status)
@@ -65,10 +63,26 @@ class TrekkInnmeldingRepositoryTest {
                     assertEquals("PENDING", rs.getString("latest_status"))
                     assertNull(rs.getTimestamp("response_at"))
                     assertNull(rs.getString("response_description"))
-                    assertNotNull(rs.getString("request_xml"))
-                    assertEquals(payload, rs.getString("request_xml"))
+                    assertNull(rs.getString("debitor_id"))
+                    assertNull(rs.getString("nav_trekk_id"))
+                    assertNull(rs.getString("kreditor_trekk_id"))
                 }
                 rollback()
+            }
+        }
+
+    @Test
+    fun `XML payload columns are not present in the database`() =
+        runBlocking {
+            suspendTransaction {
+                val columns = mutableSetOf<String>()
+                exec("SELECT column_name FROM information_schema.columns WHERE table_name = 'message_status'") { rs ->
+                    while (rs.next()) {
+                        columns += rs.getString("column_name")
+                    }
+                }
+                assertFalse("response_xml" in columns)
+                assertFalse("request_xml" in columns)
             }
         }
 
@@ -79,9 +93,9 @@ class TrekkInnmeldingRepositoryTest {
             val orgnr = "123451111"
             val id = "theIdOfTheInsertedRecord"
             suspendTransaction {
-                var registered = repo.register(orgnr, id, payload)
+                var registered = repo.register(orgnr, id)
                 assertTrue(registered)
-                registered = repo.register(orgnr, id, payload)
+                registered = repo.register(orgnr, id)
                 assertFalse(registered)
                 exec("SELECT count(*) FROM message_status") { rs ->
                     rs.next()
@@ -98,7 +112,7 @@ class TrekkInnmeldingRepositoryTest {
             val orgnr = "123456789"
             val id = "theIdOfTheInsertedRecord"
             suspendTransaction {
-                var registered = repo.register(orgnr, id, payload)
+                var registered = repo.register(orgnr, id)
                 assertTrue(registered)
                 registered = repo.registerResponse(orgnr, id, true)
                 assertTrue(registered)
@@ -107,7 +121,9 @@ class TrekkInnmeldingRepositoryTest {
                 assertEquals(id, status.id)
                 assertNotNull(status.submittedAt)
                 assertNotNull(status.updatedAt)
-                assertNull(status.responseXml)
+                assertNull(status.debitorId)
+                assertNull(status.navTrekkId)
+                assertNull(status.kreditorTrekkId)
                 exec("SELECT * FROM message_status") { rs ->
                     rs.next()
                     assertEquals("123456789", rs.getString("org_nr"))
@@ -116,34 +132,34 @@ class TrekkInnmeldingRepositoryTest {
                     assertEquals("ACCEPTED", rs.getString("latest_status"))
                     assertNotNull(rs.getTimestamp("response_at"))
                     assertNull(rs.getString("response_description"))
-                    assertNull(rs.getString("response_xml"))
-                    assertNotNull(rs.getString("request_xml"))
-                    assertEquals(payload, rs.getString("request_xml"))
+                    assertNull(rs.getString("debitor_id"))
+                    assertNull(rs.getString("nav_trekk_id"))
+                    assertNull(rs.getString("kreditor_trekk_id"))
                 }
                 rollback()
             }
         }
 
     @Test
-    fun `Verify registerResponse() accepted with xml and findNewestStatus()`() =
+    fun `Verify registerResponse() accepted with XML stores no XML and findNewestStatus()`() =
         runBlocking {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123456789"
             val id = "theIdOfTheInsertedRecord"
             val fagmeldingXml =
                 """<MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24"><MsgInfo><Type V="INNRAPPORTERING_TREKK_RETUR"/></MsgInfo></MsgHead>"""
-            val expectedBase64 = Base64.getEncoder().encodeToString(fagmeldingXml.toByteArray())
             suspendTransaction {
-                var registered = repo.register(orgnr, id, payload)
+                var registered = repo.register(orgnr, id)
                 assertTrue(registered)
                 registered = repo.registerResponse(orgnr, id, true, xml = fagmeldingXml)
                 assertTrue(registered)
                 val status = repo.findNewestStatus(orgnr, id)
                 assertEquals(MessageStatusEnum.ACCEPTED, status!!.status)
-                assertEquals(expectedBase64, status.responseXml)
-                exec("SELECT response_xml FROM message_status") { rs ->
+                exec("SELECT debitor_id, nav_trekk_id, kreditor_trekk_id FROM message_status") { rs ->
                     rs.next()
-                    assertEquals(fagmeldingXml, rs.getString("response_xml"))
+                    assertNull(rs.getString("debitor_id"))
+                    assertNull(rs.getString("nav_trekk_id"))
+                    assertNull(rs.getString("kreditor_trekk_id"))
                 }
                 rollback()
             }
@@ -157,7 +173,7 @@ class TrekkInnmeldingRepositoryTest {
             val id = "theIdOfTheInsertedRecord"
             val fagmeldingXml = this::class.java.getResource("/trekk-response.xml")?.readText() ?: ""
             suspendTransaction {
-                var registered = repo.register(orgnr, id, payload)
+                var registered = repo.register(orgnr, id)
                 assertTrue(registered)
                 registered = repo.registerResponse(orgnr, id, true, xml = fagmeldingXml)
                 assertTrue(registered)
@@ -179,7 +195,7 @@ class TrekkInnmeldingRepositoryTest {
             val fagmeldingXml =
                 """<MsgHead xmlns="http://www.kith.no/xmlstds/msghead/2006-05-24"><MsgInfo><Type V="INNRAPPORTERING_TREKK_RETUR"/></MsgInfo></MsgHead>"""
             suspendTransaction {
-                var registered = repo.register(orgnr, id, payload)
+                var registered = repo.register(orgnr, id)
                 assertTrue(registered)
                 registered = repo.registerResponse("111222333", id, true, xml = fagmeldingXml)
                 assertFalse(registered)
@@ -196,7 +212,7 @@ class TrekkInnmeldingRepositoryTest {
             val orgnr = "123456789"
             val id = "theIdOfTheInsertedRecord"
             suspendTransaction {
-                var registered = repo.register(orgnr, id, payload)
+                var registered = repo.register(orgnr, id)
                 assertTrue(registered)
                 registered = repo.registerResponse("123456789", "theIdOfTheInsertedRecord", false, "Avvist av test", "TEST_CODE")
                 assertTrue(registered)
@@ -207,7 +223,9 @@ class TrekkInnmeldingRepositoryTest {
                 assertNotNull(status.updatedAt)
                 assertEquals("Avvist av test", status.rejectionDescription)
                 assertEquals("TEST_CODE", status.rejectionCode)
-                assertNull(status.responseXml)
+                assertNull(status.debitorId)
+                assertNull(status.navTrekkId)
+                assertNull(status.kreditorTrekkId)
                 exec("SELECT * FROM message_status") { rs ->
                     rs.next()
                     assertEquals("123456789", rs.getString("org_nr"))
@@ -217,23 +235,24 @@ class TrekkInnmeldingRepositoryTest {
                     assertNotNull(rs.getTimestamp("response_at"))
                     assertEquals("Avvist av test", rs.getString("response_description"))
                     assertEquals("TEST_CODE", rs.getString("response_code"))
-                    assertNull(rs.getString("response_xml"))
+                    assertNull(rs.getString("debitor_id"))
+                    assertNull(rs.getString("nav_trekk_id"))
+                    assertNull(rs.getString("kreditor_trekk_id"))
                 }
                 rollback()
             }
         }
 
     @Test
-    fun `Verify registerResponse() rejected with xml and findNewestStatus()`() =
+    fun `Verify registerResponse() rejected with XML stores no XML`() =
         runBlocking {
             val repo = TrekkInnmeldingRepository(db)
             val orgnr = "123456789"
             val id = "theIdOfTheInsertedRecord"
             val fagmeldingXml =
                 """<AppRec xmlns="http://www.kith.no/xmlstds/apprec/2004-11-21"><Status V="2" DN="Avvist"/><Error V="B720007F" DN="Avvist av test"/></AppRec>"""
-            val expectedBase64 = Base64.getEncoder().encodeToString(fagmeldingXml.toByteArray())
             suspendTransaction {
-                var registered = repo.register(orgnr, id, payload)
+                var registered = repo.register(orgnr, id)
                 assertTrue(registered)
                 registered = repo.registerResponse(orgnr, id, false, "Avvist av test", "TEST_CODE", fagmeldingXml)
                 assertTrue(registered)
@@ -241,10 +260,11 @@ class TrekkInnmeldingRepositoryTest {
                 assertEquals(MessageStatusEnum.REJECTED, status!!.status)
                 assertEquals("Avvist av test", status.rejectionDescription)
                 assertEquals("TEST_CODE", status.rejectionCode)
-                assertEquals(expectedBase64, status.responseXml)
-                exec("SELECT response_xml FROM message_status") { rs ->
+                exec("SELECT debitor_id, nav_trekk_id, kreditor_trekk_id FROM message_status") { rs ->
                     rs.next()
-                    assertEquals(fagmeldingXml, rs.getString("response_xml"))
+                    assertNull(rs.getString("debitor_id"))
+                    assertNull(rs.getString("nav_trekk_id"))
+                    assertNull(rs.getString("kreditor_trekk_id"))
                 }
                 rollback()
             }
