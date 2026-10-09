@@ -13,6 +13,8 @@ postgresql = "42.7.13"
 hikari = "7.1.0"
 flyway = "13.9.0"
 ibm-mq = "10.0.0.5"
+jackson2 = "2.22.3"
+jackson3 = "3.2.0"
 
 [libraries]
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
@@ -59,6 +61,9 @@ token-validation-ktor-v3 = { module = "no.nav.security:token-validation-ktor-v3"
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 
 ibm-mq = { module = "com.ibm.mq:com.ibm.mq.allclient", version.ref = "ibm-mq" }
+
+jackson2-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson2" }
+jackson3-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson3" }
 
 [bundles]
 suspendapp = ["arrow-suspendapp", "arrow-suspendapp-ktor"]
