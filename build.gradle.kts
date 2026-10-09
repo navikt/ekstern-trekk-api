@@ -100,6 +100,8 @@ dependencies {
     implementation(libs.kotlin.kafka)
     implementation(libs.token.validation.ktor.v3)
     implementation(libs.ibm.mq)
+    implementation(platform(libs.jackson2.bom))
+    implementation(platform(libs.jackson3.bom))
 
     testImplementation(kotlin("test"))
     testImplementation(testLibs.mockk)
