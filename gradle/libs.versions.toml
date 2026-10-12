@@ -1,7 +1,7 @@
 [versions]
 exposed = "1.5.0"
 ktor = "3.6.0"
-hoplite = "2.9.0"
+hoplite = "3.0.0"
 arrow = "2.2.3"
 emottak-xsd = "0.3.0"
 kotlin-kafka = "0.4.1"
