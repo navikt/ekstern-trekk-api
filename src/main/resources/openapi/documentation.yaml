@@ -13,7 +13,7 @@ info:
     3. Poll `GET /v1/innrapportering/{id}` til meldingen er ferdigbehandlet (`ACCEPTED` eller `REJECTED`).
   version: "1.0"
 servers:
-  - url: https://ekstern-trekk-api.ekstern.nav.no
+  - url: https://ekstern-trekk-api.nav.no
     description: Produksjon
   - url: https://ekstern-trekk-api.ekstern.dev.nav.no
     description: Test

@@ -17,9 +17,9 @@ Se [Maskinporten-dokumentasjonen](https://docs.digdir.no/docs/Maskinporten/) for
 ## Miljøer
 
 | Miljø       | Base-URL                                           | Swagger UI                                                                          |
-|-------------|-----------------------------------------------------|-------------------------------------------------------------------------------------|
-| Produksjon  | `https://ekstern-trekk-api.ekstern.nav.no`          | [swagger](https://ekstern-trekk-api.ekstern.nav.no/v1/swagger)                         |
-| Test        | `https://ekstern-trekk-api.ekstern.dev.nav.no`      | [swagger](https://ekstern-trekk-api.ekstern.dev.nav.no/v1/swagger)                     |
+|-------------|----------------------------------------------------|-------------------------------------------------------------------------------------|
+| Produksjon  | `https://ekstern-trekk-api.nav.no`                 | [swagger](https://ekstern-trekk-api.ekstern.nav.no/v1/swagger)                         |
+| Test        | `https://ekstern-trekk-api.ekstern.dev.nav.no`     | [swagger](https://ekstern-trekk-api.ekstern.dev.nav.no/v1/swagger)                     |
 
 ## Bruk
 
