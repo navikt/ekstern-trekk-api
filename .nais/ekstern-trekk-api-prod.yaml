@@ -52,11 +52,10 @@ spec:
     max: 4
   resources:
     limits:
-      cpu: "1000m"
       memory: "512Mi"
     requests:
       cpu: "100m"
-      memory: "256Mi"
+      memory: "512Mi"
   ingresses:
     - "https://ekstern-trekk-api.nav.no"
     - "https://ekstern-trekk-api.intern.nav.no"
@@ -83,6 +82,8 @@ spec:
         tier: db-custom-1-3840
         cascadingDelete: false
   env:
+    - name: JAVA_TOOL_OPTIONS
+      value: "-XX:MaxRAMPercentage=60.0"
     - name: EMOTTAK_LOGGING_LEVEL
       value: INFO
     - name: TREKKOPPL_MQ_HOST
