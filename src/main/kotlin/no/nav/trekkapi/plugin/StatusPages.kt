@@ -42,7 +42,7 @@ fun Application.configureStatusPages() {
             call.respond(HttpStatusCode.BadRequest, ErrorResponseDto(cause.message ?: "Bad request"))
         }
         exception<NotFoundException> { call, cause ->
-            log.error("Not found: ${cause.message}")
+            log.warn("Not found: ${cause.message}")
             call.respond(HttpStatusCode.NotFound, ErrorResponseDto(cause.message ?: "Not found"))
         }
         exception<Throwable> { call, cause ->
