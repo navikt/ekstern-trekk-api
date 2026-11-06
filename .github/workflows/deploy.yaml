@@ -41,7 +41,7 @@ jobs:
       - name: Setup java
         uses: actions/setup-java@v6.1.0
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: temurin
       - name: Set timezone
         uses: szenius/set-timezone@v2.0
