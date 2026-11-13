@@ -2,6 +2,7 @@
 <configuration>
     <appender name="stdout_json" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdc>true</includeMdc>
             <provider class="net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider" />
             <jsonGeneratorDecorator class="net.logstash.logback.mask.MaskingJsonGeneratorDecorator">
                 <valueMask>

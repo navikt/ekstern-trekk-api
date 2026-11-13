@@ -23,7 +23,7 @@ import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
 import no.nav.trekkapi.util.coroutineScope
 import org.slf4j.LoggerFactory
 
-val log = LoggerFactory.getLogger("no.nav.emottak.ebms.async.LocalApp")
+private val log = LoggerFactory.getLogger("no.nav.emottak.ebms.async.LocalApp")
 
 fun main(args: Array<String>) =
     SuspendApp {

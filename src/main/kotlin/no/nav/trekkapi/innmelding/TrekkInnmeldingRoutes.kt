@@ -2,6 +2,7 @@ package no.nav.trekkapi.innmelding
 
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.request.receiveText
 import io.ktor.server.response.header
@@ -16,38 +17,45 @@ import no.nav.trekkapi.log
 import no.nav.trekkapi.persistence.table.MessageStatusEnum
 import no.nav.trekkapi.plugin.UnauthorizedException
 import no.nav.trekkapi.plugin.ValidationException
+import no.nav.trekkapi.util.withLoggingContext
 import java.io.InputStream
 import kotlin.io.bufferedReader
 import kotlin.io.readText
 import kotlin.use
+import kotlin.uuid.Uuid
 
 fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
     post("/v1/innrapportering") {
-        log.debug("Innrapportering kalt")
         val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
-
-        val innmeldingXml = call.receiveText()
-        innmeldingXml.validateInnmeldingXML()
-        val id = trekkInnmeldingService.register(orgnr, innmeldingXml)
-        log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
-        call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
-        call.response.header(HttpHeaders.RetryAfter, "10")
-        call.respond(HttpStatusCode.Accepted)
+        call.withLoggingContext(orgnr = orgnr) {
+            log.debug("Innrapportering kalt")
+            val innmeldingXml = call.receiveText()
+            innmeldingXml.validateInnmeldingXML()
+            val id = Uuid.random().toString()
+            call.withLoggingContext(messageId = id) {
+                trekkInnmeldingService.register(orgnr, id, innmeldingXml)
+                log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
+                call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
+                call.response.header(HttpHeaders.RetryAfter, "10")
+                call.respond(HttpStatusCode.Accepted)
+            }
+        }
     }
 
     get("/v1/innrapportering/{id}") {
-        val id = call.pathParameters["id"]!!
-        log.debug("Hent innrapporteringstatus kalt med id: $id")
+        val id = call.pathParameters["id"] ?: throw BadRequestException("Missing id parameter")
         val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
-
-        val status =
-            trekkInnmeldingService.getStatus(orgnr, id)
-                ?: throw NotFoundException("No message found with the given ID")
-        log.info("Returnerer status ${status.status} for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
-        if (status.status == MessageStatusEnum.PENDING) {
-            call.response.header(HttpHeaders.RetryAfter, "10")
+        call.withLoggingContext(orgnr = orgnr, messageId = id) {
+            log.debug("Hent innrapporteringstatus kalt med id: $id")
+            val status =
+                trekkInnmeldingService.getStatus(orgnr, id)
+                    ?: throw NotFoundException("No message found with the given ID")
+            log.info("Returnerer status ${status.status} for trekkopplysningsmelding med orgnr: $orgnr, id: $id")
+            if (status.status == MessageStatusEnum.PENDING) {
+                call.response.header(HttpHeaders.RetryAfter, "10")
+            }
+            call.respond(HttpStatusCode.OK, status)
         }
-        call.respond(HttpStatusCode.OK, status)
     }
 }
 
@@ -85,7 +93,7 @@ fun Route.testRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
     }
 
     get("/test/innrapportering/{id}") {
-        val id = call.pathParameters["id"]!!
+        val id = call.pathParameters["id"] ?: throw BadRequestException("Missing id parameter")
         log.debug("TEST Hent innrapporteringstatus kalt med id: $id")
 
         val orgnr = "974761076"
