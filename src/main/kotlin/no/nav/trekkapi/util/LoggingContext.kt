@@ -18,7 +18,26 @@ suspend fun <T> ApplicationCall.withLoggingContext(
     messageId?.let { fields["messageId"] = it }
     // Keep the fields on the call so StatusPages can restore them after an exception unwinds the coroutine context.
     attributes.put(loggingContextKey, fields)
-    return withContext(MDCContext(MDC.getCopyOfContextMap().orEmpty() + fields)) {
+    return withMdcFields(fields, block)
+}
+
+suspend fun <T> withLoggingContext(
+    orgnr: String? = null,
+    messageId: String? = null,
+    block: suspend () -> T,
+): T =
+    withMdcFields(
+        buildMap {
+            orgnr?.let { put("orgnr", it) }
+            messageId?.let { put("messageId", it) }
+        },
+        block,
+    )
+
+private suspend fun <T> withMdcFields(
+    fields: Map<String, String>,
+    block: suspend () -> T,
+): T =
+    withContext(MDCContext(MDC.getCopyOfContextMap().orEmpty() + fields)) {
         block()
     }
-}

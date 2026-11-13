@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.map
 import no.nav.trekkapi.configuration.config
 import no.nav.trekkapi.configuration.toProperties
 import no.nav.trekkapi.persistence.TrekkInnmeldingRepository
+import no.nav.trekkapi.util.withLoggingContext
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.LoggerFactory
@@ -41,33 +42,35 @@ suspend fun startResponseReceiver(
             val fellesFormat = trekkInnmeldingModel.parseTrekkInnmeldingResponseAsFellesFormat(mottattXml)
             val fagmeldingXml = trekkInnmeldingModel.getFagmeldingXmlFraFellesformat(mottattXml, fellesFormat)
             val (orgnummer, meldingsid) = trekkInnmeldingModel.orgnrOgMeldingsId(fellesFormat)
-            val isAccepted = trekkInnmeldingModel.isAccepted(fellesFormat)
-            if (isAccepted) {
-                if (trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, true, null, null, fagmeldingXml)) {
-                    log.info(
-                        "Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: akseptert",
-                    )
-                } else {
-                    log.warn(
-                        "Updated rows fra DB for akseptert trekkopplysningsmelding-respons (messageId '$meldingsid', orgnr '$orgnummer') var ikke 1 som forventet",
-                    )
-                }
-            } else {
-                val isRejected = trekkInnmeldingModel.isRejected(fellesFormat)
-                if (isRejected) {
-                    val beskrivelse = trekkInnmeldingModel.getRejectionDescription(fellesFormat)
-                    val kode = trekkInnmeldingModel.getRejectionCode(fellesFormat)
-                    if (trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, false, beskrivelse, kode, fagmeldingXml)) {
+            withLoggingContext(orgnr = orgnummer, messageId = meldingsid) {
+                val isAccepted = trekkInnmeldingModel.isAccepted(fellesFormat)
+                if (isAccepted) {
+                    if (trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, true, null, null, fagmeldingXml)) {
                         log.info(
-                            "Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: avvist",
+                            "Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: akseptert",
                         )
                     } else {
                         log.warn(
-                            "Updated rows fra DB for avvist trekkopplysningsmelding-respons (messageId '$meldingsid', orgnr '$orgnummer') var ikke 1 som forventet",
+                            "Updated rows fra DB for akseptert trekkopplysningsmelding-respons (messageId '$meldingsid', orgnr '$orgnummer') var ikke 1 som forventet",
                         )
                     }
                 } else {
-                    log.error("Ukjent status for trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid")
+                    val isRejected = trekkInnmeldingModel.isRejected(fellesFormat)
+                    if (isRejected) {
+                        val beskrivelse = trekkInnmeldingModel.getRejectionDescription(fellesFormat)
+                        val kode = trekkInnmeldingModel.getRejectionCode(fellesFormat)
+                        if (trekkInnmeldingRepository.registerResponse(orgnummer, meldingsid, false, beskrivelse, kode, fagmeldingXml)) {
+                            log.info(
+                                "Response på trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid er lagret, status: avvist",
+                            )
+                        } else {
+                            log.warn(
+                                "Updated rows fra DB for avvist trekkopplysningsmelding-respons (messageId '$meldingsid', orgnr '$orgnummer') var ikke 1 som forventet",
+                            )
+                        }
+                    } else {
+                        log.error("Ukjent status for trekkopplysningsmelding med orgnr $orgnummer, meldingsId $meldingsid")
+                    }
                 }
             }
             record.offset.acknowledge()
