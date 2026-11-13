@@ -84,6 +84,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.4.21")
     implementation(libs.logback)
     implementation(libs.logstash)
+    implementation(libs.coroutines.slf4j)
     implementation(libs.emottak.payload.xsd) // brukes for å få Fellesformat. Kan evt erstattes med lib utenfor emottak
     implementation(libs.bundles.ktor)
     implementation(libs.server.swagger)
