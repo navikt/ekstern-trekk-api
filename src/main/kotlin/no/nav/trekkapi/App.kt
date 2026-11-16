@@ -49,7 +49,7 @@ fun main(args: Array<String>) =
 suspend fun ResourceScope.runServer() {
     log.info("--- Getting config")
     val config = config()
-    log.info("--- Config loaded: $config")
+    log.info("--- Config loaded")
 
     log.info("--- Starting database")
     val database = Database(messageStatusDbConfig.value)
@@ -69,7 +69,6 @@ suspend fun ResourceScope.runServer() {
             ),
     )
 
-    log.debug("Configuration: {}", config)
     if (config.kafkaResponseQueue.active) {
         log.info("Starting response receiver")
         val eventReceiverScope = coroutineScope(currentCoroutineContext() + Dispatchers.IO)

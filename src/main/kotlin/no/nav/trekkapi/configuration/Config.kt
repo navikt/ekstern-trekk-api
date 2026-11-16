@@ -37,7 +37,7 @@ data class Server(
 data class Database(
     val jdbcUrl: String,
     val jdbcUser: String,
-    val jdbcPassword: String,
+    val jdbcPassword: Masked,
     val maxConnectionPoolSizeForUser: MaxConnectionPoolSizeForUser,
     val maxConnectionPoolSizeForAdmin: MaxConnectionPoolSizeForAdmin,
     val distinctValuesRefreshRateInHours: DistinctValuesRefreshRateInHours,

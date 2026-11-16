@@ -22,7 +22,7 @@ fun configure(role: String): HikariConfig {
             jdbcUrl = config.database.jdbcUrl
             driverClassName = "org.postgresql.Driver"
             this.username = config.database.jdbcUser
-            this.password = config.database.jdbcPassword
+            this.password = config.database.jdbcPassword.value
             this.maximumPoolSize = maxPoolSizeForUser
             if (role == "admin") {
                 this.maximumPoolSize = maxPoolSizeForAdmin
