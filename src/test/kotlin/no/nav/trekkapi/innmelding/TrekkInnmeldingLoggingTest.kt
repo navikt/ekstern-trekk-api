@@ -152,7 +152,7 @@ class TrekkInnmeldingLoggingTest {
         }
 
     @Test
-    fun `Invalid XML logs authenticated orgnr without allocating a message ID`() =
+    fun `Invalid XML retains generated ID in error log without registering or leaking context`() =
         testApplication {
             application { configureTestRoutes() }
 
@@ -162,8 +162,16 @@ class TrekkInnmeldingLoggingTest {
                 }
 
             assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
-            assertContext("Validation error", orgnr, null)
+            val validationEvent = appender.list.single { it.formattedMessage.startsWith("Validation error") }
+            val id = assertNotNull(validationEvent.mdcPropertyMap["messageId"])
+            Uuid.parse(id)
+            assertContext("Validation error", orgnr, id)
+            assertNull(response.headers[HttpHeaders.Location])
+            assertNull(response.headers[HttpHeaders.RetryAfter])
             coVerify(exactly = 0) { service.register(any(), any(), any()) }
+
+            assertEquals(HttpStatusCode.OK, client.get("/unrelated").status)
+            assertContext("Unrelated request", null, null)
         }
 
     @Test

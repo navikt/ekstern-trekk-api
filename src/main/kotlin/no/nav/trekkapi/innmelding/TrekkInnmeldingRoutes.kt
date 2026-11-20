@@ -27,18 +27,16 @@ import kotlin.uuid.Uuid
 fun Route.innmeldingRoutes(trekkInnmeldingService: TrekkInnmeldingService) {
     post("/v1/innrapportering") {
         val orgnr = orgNrFromTokenValidationContext() ?: throw UnauthorizedException()
-        call.withLoggingContext(orgnr = orgnr) {
+        val id = Uuid.random().toString()
+        call.withLoggingContext(orgnr = orgnr, messageId = id) {
             log.debug("Innrapportering kalt")
             val innmeldingXml = call.receiveText()
             innmeldingXml.validateInnmeldingXML()
-            val id = Uuid.random().toString()
-            call.withLoggingContext(messageId = id) {
-                trekkInnmeldingService.register(orgnr, id, innmeldingXml)
-                log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
-                call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
-                call.response.header(HttpHeaders.RetryAfter, "10")
-                call.respond(HttpStatusCode.Accepted)
-            }
+            trekkInnmeldingService.register(orgnr, id, innmeldingXml)
+            log.info("Videresendt trekkopplysningsmelding for orgnr: $orgnr, med ny id: $id")
+            call.response.header(HttpHeaders.Location, "/v1/innrapportering/$id")
+            call.response.header(HttpHeaders.RetryAfter, "10")
+            call.respond(HttpStatusCode.Accepted)
         }
     }
 
