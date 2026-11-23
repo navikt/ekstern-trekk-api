@@ -66,7 +66,7 @@ jobs:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Docker build and push ekstern-trekk-api
-        uses: nais/docker-build-push@v0
+        uses: nais/docker-build-push@v1
         id: docker-ekstern-trekk-api
         with:
           team: team-emottak
