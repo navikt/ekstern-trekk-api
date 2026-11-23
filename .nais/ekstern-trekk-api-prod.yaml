@@ -86,7 +86,7 @@ spec:
       value: >-
         -XX:MaxRAMPercentage=60.0
         -Dcom.ibm.mq.cfg.TCP.ClntSndBuffSize=32768
-        -Dcom.ibm.mq.cfg.TCP.ClntRcvBuffSize=32768
+        -Dcom.ibm.mq.cfg.TCP.ClntRcvBuffSize=43690
         -Dcom.ibm.msg.client.commonservices.log.outputName=System.out
     - name: EMOTTAK_LOGGING_LEVEL
       value: INFO
